@@ -313,7 +313,7 @@
 
 Mimo gives accepted understanding a vivid, stable place to read. Saturated violet anchors the family; pale periwinkle or midnight surfaces keep supporting tasks legible. The original mint jelly identity adds a friendly, tactile presence through transparent artwork, expressive poses, and bounded squash and stretch.
 
-Native system type and direct controls suit sustained listening and reading in Chrome. Expression belongs to Mimo and short interaction responses. Accepted text stays still while the companion acknowledges a real change. The Daylight and Midnight world continues from the preceding frontend; the reviewed Mimo 0.12.2 source candidate retains understanding and the active contribution on the same violet reading ground, with Mimo on its upper seam and unboxed recording controls directly below the character on Live memo.
+Native system type and direct controls suit sustained listening and reading in Chrome. Expression belongs to Mimo and short interaction responses. Accepted text stays still while the companion acknowledges a real change. The Daylight and Midnight world continues from the preceding frontend; the Mimo 0.13.0 source candidate retains understanding and the active contribution on the same violet reading ground, with Mimo on its upper seam and unboxed recording controls directly below the character on Live memo. Stop now leads to a separate Meeting notes reader on that field, with factual bullets first and file status/actions below. The candidate remains separate from installed 0.12.1; current evidence and limits are in `artifacts/end-meeting-2026-11-02/IMPLEMENTATION.md`.
 
 **Key Characteristics:**
 
@@ -349,7 +349,7 @@ Understanding and contribution prose share an 18px/1.65 reading scale and a maxi
 
 ## Layout
 
-The assistant fills the viewport height in a centered 760px maximum main area. One flat violet surface holds either understanding or a focused contribution. On Live memo, Mimo perches on the upper seam; an unboxed row immediately beneath the visible mascot body contains actual elapsed time and an independent icon-only Stop. Reserve enough reading inset for both controls. The former header, lower character stage, nested thought panel, and separate session capsule are superseded.
+The assistant fills the viewport height in a centered 760px maximum main area. One flat violet surface holds understanding, a focused contribution, or the post-meeting reader for the selected ended session. On Live memo, Mimo perches on the upper seam; an unboxed row immediately beneath the visible mascot body contains actual elapsed time and an independent icon-only Stop. Reserve enough reading inset for both controls. The former header, lower character stage, nested thought panel, and separate session capsule are superseded.
 
 The ordinary reading surface has 48px top and 16px side/bottom margins, a 100px upper inset, and 24px reading gutters. At width ≤300px, margins become 44px/12px/12px, inset remains 100px, and gutters become 16px. At ≤240px, top margin becomes 36px and inset 88px. Mimo retains full 88px, 80px, and 64px artwork at its prior visible coordinates; the corresponding interaction targets are 88×76px, 80×68px, and 64×54px. Only empty sprite space is removed from the target height. Stop remains a disjoint 44×44px target with an accessible action name at every width. Its hover fill and keyboard-focus outline use a 26px circle inside that target. The cue is visually hidden with its existing live announcement retained. The 18px round contribution-availability marker sits near the tuft at top 4px/right 6px and remains distinct from the face.
 
@@ -397,6 +397,14 @@ Current understanding and the active contribution share the stable violet field.
 
 Settings uses bordered grouped lists and violet detail headings. Contribution history uses line-separated entries, loads 25 at a time, and identifies historical status as past status. Saved understanding and history remain inspectable after Stop.
 
+### Meeting notes and export
+
+The post-meeting reader reuses the inverse violet field and existing Mimo artwork. Factual bullets lead without forced category headings. A quiet status line describes actual transcription/generation, failure, or empty content; a divider separates Audio, Transcript and Meeting notes save states and the applicable Choose folder, Retry meeting notes, Retry saving, New meeting and Discard controls. Do not claim saved files or available minutes from an in-progress or failed state.
+
+The heading is 24px/1.25 at weight 650, reducing to 22px at ≤240px. Bullets are 17px/1.65 and reduce to 16px at ≤280px. The status is 14px/1.6, save summary/actions 13px, and per-file metadata 12px. Ended top inset is 76px, 64px at ≤280px and 52px at ≤240px; gutters are 24px, reducing to 16px at ≤280px. Bullets use the existing mint identity as marker color. Action targets are at least 44px; Sources retains the authored 36px target. The full reader scrolls inside its field and preserves stable footer destinations.
+
+Save-only updates retain the bullet DOM and its Sources control. Source navigation uses the selected job's own transcript and restores initiating focus on Back. Stop-owned focus moves into the visible Meeting notes heading after capture closes. Other unsaved meetings is a secondary disclosure; selecting one cannot take over a new recording. Detailed source and evidence boundaries are in `.impeccable/surfaces/end-meeting.md` and `docs/END-MEETING.md`. Native OS folder selection remains separate from renderer, OPFS writer and keyboard-focus proof.
+
 ### Chips / Feedback
 
 Focused contributions show their actual title first, followed by body, timestamp, checked status, meaningful kind/epistemic markers, sources, and response controls. Titleless contributions use “A thought to consider.” Useful and Skip are separate 44px controls. More discloses Not helpful and Dismiss. Failed feedback stays on the contribution with a retryable message. Previous-topic text is muted; answered status uses success and corrected status uses warning. Conversation sources provide context and do not verify general knowledge.
@@ -407,7 +415,7 @@ Focused contributions show their actual title first, followed by body, timestamp
 
 The shared production sheet is `public/mimo/mimo-expressions.png`, a 1774×887 transparent RGBA PNG with four columns and two rows: idle, listening, thinking, insight, appreciation, curious, rest, reassure. It retains the canonical mint identity at `public/memo/memo-slime.png` (1254×1254 RGBA), which remains the failure fallback and manifest icon source. Both were generated with built-in ImageGen; exact prompts are embedded under `impeccable:prompt` and retained in `docs/design-assets/`. The sheet is used across assistant, popup, and Settings. Preserve provenance and transparent contours. Developer direction contracts stay outside browser assets.
 
-A genuinely new accepted contribution enters once when understanding is visible; if that hides the focused reading region, focus moves to the visible reading region. Restored/repeated snapshots stay quiet. Newer thoughts queue behind the displayed thought. Clicking Mimo can revisit an available thought. Skip, Mimo, and Escape change local presentation; Dismiss archives explicitly through feedback. The former Close toolbar is hidden in the upper-edge surface. Useful waits for successful storage, then returns with appreciation, guarded by session, contribution, and interaction generation. Source/Back restores the pinned reading view. Stop suppresses automatic contribution entry and returns to understanding without creating MOM.
+A genuinely new accepted contribution enters once when understanding is visible; if that hides the focused reading region, focus moves to the visible reading region. Restored/repeated snapshots stay quiet. Newer thoughts queue behind the displayed thought. Clicking Mimo can revisit an available thought. Skip, Mimo, and Escape change local presentation; Dismiss archives explicitly through feedback. The former Close toolbar is hidden in the upper-edge surface. Useful waits for successful storage, then returns with appreciation, guarded by session, contribution, and interaction generation. Source/Back restores the pinned reading view. Stop suppresses automatic contribution entry and opens the separate complete-transcript meeting-notes flow. Ended Mimo cannot reopen old live contributions. Preparation, ready, empty and failed results need truthful distinct cues; source inspection and save-only progress preserve the reading context.
 
 **The Real Change Rule.** React to actual accepted state, recording state, source/history navigation, recovery, or direct character interaction. Repeated snapshots stay quiet.
 
@@ -430,4 +438,4 @@ Shared reactions use an 800ms duration, except insight/Useful at 1100ms, with `c
 - **Don't** stack a contribution beneath understanding or overlay it as a speech bubble in the current live surface.
 - **Don't** move accepted text or steal focus from a control that remains visible merely to announce an update.
 - **Don't** use character motion as an audio-level meter or an unbounded processing spinner.
-- **Don't** generate whole-session minutes when Stop is pressed.
+- **Don't** let live contributions or their recovery publish into the post-meeting reader; final minutes wait for complete ASR and use the full transcript.

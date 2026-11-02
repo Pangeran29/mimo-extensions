@@ -1,4 +1,146 @@
 /* Mimo owns the reading surface; unboxed session controls sit at the character's feet. */
+body[data-ended='true'] #analysis-panel,
+body[data-ended='true'] #contribution-view,
+body[data-ended='true'] #memo-recovery,
+body[data-ended='true'] #mimo-session-controls,
+body[data-ended='true'] .memo-contribution-hint {
+  display: none !important;
+}
+body[data-ended='true'] #mimo-reading-surface {
+  padding-top: 76px;
+}
+body[data-ended='true'] #session-controls .nav-button > span {
+  white-space: normal;
+  text-align: center;
+}
+#mimo-reading-surface #end-meeting-panel {
+  padding: 0 24px 24px;
+  overflow-y: auto;
+}
+.end-meeting-panel h2 {
+  margin: 0 0 10px;
+  font-size: 24px;
+  font-weight: 650;
+  line-height: 1.25;
+  letter-spacing: -0.025em;
+}
+.end-status {
+  margin: 0 0 22px;
+  color: #e5e5ff;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.end-bullets {
+  padding: 0 0 0 20px;
+  margin: 0;
+}
+.end-bullets li {
+  padding-left: 4px;
+  margin-bottom: 18px;
+}
+.end-bullets li::marker {
+  color: #b8f4da;
+}
+.end-bullets p {
+  margin: 0;
+  color: #fff;
+  font-size: 17px;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+.end-meeting-panel .end-sources {
+  color: #e5e5ff;
+  min-height: 36px;
+  margin-top: 2px;
+}
+.end-export {
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid #8583e5;
+}
+.end-export-status {
+  margin: 0 0 12px;
+  color: #e5e5ff;
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.end-files {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #e5e5ff;
+}
+.end-files li[data-state='failed'] {
+  color: #ffd9e0;
+}
+.end-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 18px;
+  margin-top: 12px;
+}
+.end-other {
+  margin-top: 18px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #e5e5ff;
+}
+.end-other > summary {
+  min-height: 44px;
+  padding: 10px 0;
+}
+.end-other ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.end-other .text-button {
+  color: inherit;
+  min-height: 44px;
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.idle-pending {
+  align-self: stretch;
+  text-align: left;
+}
+.idle-pending ul {
+  max-height: 180px;
+  overflow-y: auto;
+}
+.end-meeting-panel .end-actions .text-button {
+  color: #fff;
+  font-size: 13px;
+  min-height: 44px;
+}
+@media (max-width: 280px) {
+  body[data-ended='true'] #mimo-reading-surface {
+    padding-top: 64px;
+  }
+  #mimo-reading-surface #end-meeting-panel {
+    padding: 0 16px 20px;
+  }
+  .end-bullets p {
+    font-size: 16px;
+  }
+}
+@media (max-width: 240px) {
+  body[data-ended='true'] #mimo-reading-surface {
+    padding-top: 52px;
+  }
+  .end-meeting-panel h2 {
+    font-size: 22px;
+  }
+}
 #mimo-reading-surface {
   position: relative;
   display: flex;

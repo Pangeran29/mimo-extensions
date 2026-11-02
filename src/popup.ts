@@ -4,6 +4,10 @@ import { assistantSurface, surfaceAtTime, surfaceKey, type AssistantSurface } fr
 import type { TranscriptSnapshot } from './transcription/types';
 import { openPanel, type PanelView } from './panel';
 import { MimoMascot, type MimoPose } from './mimo/mascot';
+import { endAndChooseFolder, endRequest } from './end-meeting/ui';
+import type { EndMeetingJob } from './end-meeting/types';
+import { listJobs } from './end-meeting/store';
+import { isUnclaimedBundle } from './end-meeting/presentation';
 import {
   duration,
   errorText,
@@ -18,6 +22,8 @@ const error = $<HTMLParagraphElement>('error');
 const greeting = $('memo-greeting');
 const mascot = new MimoMascot(greeting, { interactive: true, size: 136 });
 let current: Status = { phase: 'idle', retained: [] };
+let latestEnd: EndMeetingJob | undefined;
+const endJobIds = new Set<string>();
 let activeTab: chrome.tabs.Tab | undefined;
 let micReady = false;
 let pending = false;
@@ -142,7 +148,8 @@ function render(status: Status): void {
   );
   $('capture-status').hidden = false;
   $('timer').hidden = !['recording', 'stopping', 'saving'].includes(status.phase);
-  $('open-assistant').hidden = !['recording', 'stopping', 'saving'].includes(status.phase);
+  $('open-assistant').hidden = !['recording', 'stopping', 'saving'].includes(status.phase) && !latestEnd;
+  $('open-assistant-label').textContent = status.phase === 'recording' ? 'Join Mimo' : latestEnd ? 'Open meeting notes' : 'Join Mimo';
   $('notice').textContent =
     !canRecord && status.phase !== 'recording'
       ? 'Open a website tab to listen.'
@@ -161,7 +168,7 @@ function render(status: Status): void {
   const retained = [
     ...(status.phase === 'save-failed' && status.session ? [status.session] : []),
     ...status.retained,
-  ];
+  ].filter((session) => session.exportKind !== 'meeting-bundle-v1' || isUnclaimedBundle(session, endJobIds));
   $('recovery').hidden = retained.length === 0;
   const signature = JSON.stringify(retained) + busy + status.phase;
   if (signature !== lastRecovery) {
@@ -189,6 +196,25 @@ function renderRetained(parent: HTMLElement, session: Session, disabled: boolean
   }
   const actions = document.createElement('div');
   actions.className = 'actions';
+  if (isUnclaimedBundle(session, endJobIds)) {
+    const recover = document.createElement('button');
+    recover.type = 'button';
+    recover.className = 'text-button';
+    recover.textContent = 'Recover meeting files';
+    recover.disabled = disabled;
+    recover.onclick = () => {
+      const recovering = endAndChooseFolder(session.id);
+      void act(async () => {
+        latestEnd = await recovering;
+        if (latestEnd) endJobIds.add(latestEnd.sessionId);
+        return send({ target: 'worker', type: 'STATUS' });
+      });
+    };
+    actions.append(recover);
+    item.append(actions);
+    parent.append(item);
+    return;
+  }
   for (const [label, type] of [
     ['Retry Save', 'RETRY'],
     ['Discard', 'DISCARD'],
@@ -245,13 +271,19 @@ window.addEventListener('pagehide', () => {
   clearTimeout(greetingTimer);
   mascot.dispose();
 });
-$('stop').addEventListener('click', () => {
-  if (current.phase === 'recording' && !pending)
-    void act(() => send({ target: 'worker', type: 'STOP' }));
-});
+function stopAndSave(): void {
+  if (current.phase !== 'recording' || pending) return;
+  // Both popup Stop paths retain the user's gesture for folder selection.
+  const stopping = endAndChooseFolder(current.session?.id);
+  void act(async () => {
+    latestEnd = await stopping;
+    return send({ target: 'worker', type: 'STATUS' });
+  });
+}
+$('stop').addEventListener('click', stopAndSave);
 main.addEventListener('click', () => {
   if (current.phase === 'recording') {
-    void act(() => send({ target: 'worker', type: 'STOP' }));
+    stopAndSave();
     return;
   }
   if (!activeTab?.id) return;
@@ -276,6 +308,11 @@ chrome.runtime.onMessage.addListener((message, sender) => {
   if (sender.id !== chrome.runtime.id) return;
   if (message.target === 'ui' && message.type === 'STATE') render(message.status);
   if (message.target === 'ui' && message.type === 'TRANSCRIPT_STATE') updateModel(message.snapshot);
+  if (message.target === 'ui' && message.type === 'END_STATE') {
+    latestEnd = message.job;
+    if (latestEnd) endJobIds.add(latestEnd.sessionId);
+    render(current);
+  }
 });
 setInterval(() => {
   if (current.phase === 'recording')
@@ -284,9 +321,12 @@ setInterval(() => {
 void (async () => {
   [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
   micReady = !!(await chrome.storage.local.get('microphoneReady')).microphoneReady;
+  for (const job of await listJobs()) endJobIds.add(job.sessionId);
   const status = await send({ target: 'worker', type: 'STATUS' });
   loaded = true;
   render(status);
+  latestEnd = await endRequest({ type: 'END_STATUS' });
+  render(current);
 })().catch((e) => showError(errorText(e)));
 
 function openDockedView(view: PanelView): void {

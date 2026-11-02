@@ -103,6 +103,14 @@ async function connectionStatus(s: AssistantSettings) {
   };
 }
 let configuring = Promise.resolve<unknown>(undefined);
+/** Restore a post-meeting job's provider without changing the current live settings. */
+export async function initializeEndConnection(value: AssistantSettings): Promise<void> {
+  const selected = normalizeSettings(value);
+  await forward({
+    type: 'END_CONFIGURE', settings: selected,
+    apiKey: providerOf(selected) === 'hpop' ? await key() : '',
+  });
+}
 export async function assistantControl(action: AssistantAction): Promise<unknown> {
   if (action.type === 'ASSISTANT_SETTINGS')
     return {

@@ -13,6 +13,11 @@ import { meetingMemo, memoBlocks } from './assistant/summaries';
 import type { TranscriptSnapshot } from './transcription/types';
 import type { Reply, Status } from './types';
 import { REPLAY_LAB } from './replay/config';
+import type { EndAction, EndMeetingJob } from './end-meeting/types';
+import { EndMeetingView } from './end-meeting/view';
+import { listJobs } from './end-meeting/store';
+import { canReadEndJob, isUnclaimedBundle, unsavedEndJobs } from './end-meeting/presentation';
+import { endAndChooseFolder, endRequest, hasMeetingDirectory, saveMeetingToFolder } from './end-meeting/ui';
 import {
   presentationEvent,
   setPresentationContext,
@@ -39,6 +44,7 @@ let followSummary = true;
 let followTranscript = true;
 let feedbackBusy = false;
 let stopBusy = false;
+let endFocusRequested = false;
 let startBusy = false;
 let recordingLoaded = false;
 let activeTab: chrome.tabs.Tab | undefined;
@@ -52,6 +58,16 @@ let liveAI = false;
 let liveTranscript = false;
 let liveRecording = false;
 let uiError = '';
+let endJob: EndMeetingJob | undefined;
+let endHidden = false;
+let endPolling = false;
+let endActionBusy = false;
+let preparedDestination = false;
+let destinationSession: string | undefined;
+let selectedEndSession: string | undefined;
+let pendingEndJobs: EndMeetingJob[] = [];
+let pendingJobsLoading = false;
+let pendingJobsRefreshedAt = 0;
 let renderedSession: string | undefined;
 let returnFocus: HTMLElement | undefined;
 const rows = new Map<number, HTMLElement>();
@@ -63,6 +79,144 @@ const transcriptPanel = $('transcript-panel');
 const replayView = REPLAY_LAB && new URLSearchParams(location.search).get('replay') === '1';
 const presentationTracker = new V2PresentationTracker();
 const idleMascot = new MimoMascot($('idle-mimo-greeting'), { interactive: true, size: 180 });
+const endView = new EndMeetingView($('end-meeting-panel'), {
+  sources: (ids, trigger) => {
+    if (endJob?.transcript) renderTranscript(endJob.transcript);
+    showEvidence(ids, trigger);
+  },
+  save: () => {
+    if (!endJob || endActionBusy) return;
+    // The picker starts in this click, before the busy/render cycle awaits anything.
+    const saving = saveMeetingToFolder(endJob.sessionId);
+    void endAction(() => saving);
+  },
+  retryMom: () => void endAction(() => endRequest({ type: 'END_RETRY', sessionId: endJob!.sessionId })),
+  retrySave: () => void endAction(() => endRequest({ type: 'END_SAVE', sessionId: endJob!.sessionId })),
+  start: () => {
+    endHidden = true;
+    selectedEndSession = undefined;
+    reviewingSaved = false;
+    updatePresence();
+    if (!replayView) $('start').focus({ preventScroll: true });
+  },
+  discard: () => {
+    if (!endJob || !confirm('Discard the unsaved meeting files? This cannot be undone.')) return;
+    void endAction(async () => {
+      await endRequest({ type: 'END_DISCARD', sessionId: endJob!.sessionId });
+      endJob = undefined;
+      endHidden = false;
+      selectedEndSession = undefined;
+      void refreshPending(true);
+      return undefined;
+    });
+  },
+  select: (sessionId) => void selectEndSession(sessionId),
+});
+function ended(): boolean {
+  return !!endJob && !endHidden && canReadEndJob(endJob.sessionId, activeSession, recording.phase, selectedEndSession);
+}
+async function selectEndSession(sessionId: string): Promise<void> {
+  if (['starting', 'recording', 'stopping'].includes(recording.phase) || endActionBusy) return;
+  selectedEndSession = sessionId;
+  endHidden = false;
+  if (panelView === 'settings') openSettings(false, false);
+  await endAction(async () => {
+    const job = await endRequest({ type: 'END_STATUS', sessionId });
+    if (!job) {
+      selectedEndSession = undefined;
+      throw new Error('Those meeting results are no longer retained.');
+    }
+    return job;
+  });
+  if (ended()) selectDetail('summary');
+}
+function pendingControls(): void {
+  const busy = ['starting', 'recording', 'stopping'].includes(recording.phase);
+  endView.setPending(pendingEndJobs, busy || endActionBusy);
+  const ids = new Set(pendingEndJobs.map((job) => job.sessionId));
+  const raw = [...(recording.session ? [recording.session] : []), ...recording.retained]
+    .filter((session, index, all) => all.findIndex((row) => row.id === session.id) === index)
+    .filter((session) => isUnclaimedBundle(session, ids));
+  const pending = unsavedEndJobs(pendingEndJobs);
+  const details = $('pending-meetings') as HTMLDetailsElement;
+  details.hidden = !pending.length && !raw.length;
+  const signature = JSON.stringify([pending.map((job) => [job.sessionId, job.sourceTitle, job.createdAt]), raw.map((session) => [session.id, session.sourceTitle]), busy]);
+  const list = $('pending-meetings-list');
+  if (list.dataset.signature === signature) return;
+  list.dataset.signature = signature;
+  list.replaceChildren();
+  for (const job of pending) {
+    const li = document.createElement('li');
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'text-button';
+    button.disabled = busy;
+    button.textContent = `${job.sourceTitle} — ${new Date(job.createdAt).toLocaleString()}`;
+    button.onclick = () => void selectEndSession(job.sessionId);
+    li.append(button);
+    list.append(li);
+  }
+  for (const session of raw) {
+    const li = document.createElement('li');
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'text-button';
+    button.disabled = busy;
+    button.textContent = `Recover meeting files: ${session.sourceTitle}`;
+    button.onclick = () => {
+      selectedEndSession = session.id;
+      endHidden = false;
+      const recovery = endAndChooseFolder(session.id);
+      void endAction(() => recovery);
+    };
+    li.append(button);
+    list.append(li);
+  }
+}
+async function refreshPending(force = false): Promise<void> {
+  if (pendingJobsLoading || !force && Date.now() - pendingJobsRefreshedAt < 5000) return;
+  pendingJobsLoading = true;
+  try {
+    pendingEndJobs = await listJobs();
+    pendingJobsRefreshedAt = Date.now();
+    pendingControls();
+  } catch { /* Keep current reader available if the auxiliary list cannot load. */ }
+  finally { pendingJobsLoading = false; }
+}
+async function endAction(task: () => Promise<EndMeetingJob | undefined>): Promise<void> {
+  if (endActionBusy) return;
+  endActionBusy = true;
+  endView.setBusy(true);
+  try { receiveEnd(await task()); }
+  catch (e) { error(e); }
+  finally {
+    endActionBusy = false;
+    endView.setBusy(false);
+    updatePresence();
+  }
+}
+function receiveEnd(job: EndMeetingJob | undefined): void {
+  if (!job) return;
+  const old = pendingEndJobs.findIndex((item) => item.sessionId === job.sessionId);
+  if (old >= 0) pendingEndJobs[old] = job;
+  else pendingEndJobs.push(job);
+  pendingControls();
+  if (!canReadEndJob(job.sessionId, activeSession, recording.phase, selectedEndSession)) return;
+  if (endJob?.sessionId === job.sessionId && endJob.updatedAt > job.updatedAt) return;
+  endJob = job;
+  endView.render(job);
+  if (job.transcript && !['starting', 'recording'].includes(recording.phase)) renderTranscript(job.transcript);
+  updatePresence();
+}
+async function refreshEnd(): Promise<void> {
+  if (endPolling || document.hidden) return;
+  endPolling = true;
+  try {
+    receiveEnd(await endRequest({ type: 'END_STATUS', sessionId: selectedEndSession ?? activeSession }));
+    void refreshPending();
+  } catch { /* Existing builds may not expose end-session status until reloaded. */ }
+  finally { endPolling = false; }
+}
 $('idle-mimo-greeting').onclick = () => {
   $('idle-mimo-message').textContent = 'Hi. I’m right here when you’re ready.';
 };
@@ -77,6 +231,10 @@ memoCharacter.setReturnHandler(() => {
 });
 
 function updateNavigation(): void {
+  const label = ended() ? 'Meeting notes' : 'Live memo';
+  $('open-live').querySelector('span')!.textContent = label;
+  $('open-live').setAttribute('aria-label', label);
+  $('open-live').title = label;
   for (const [id, view] of [
     ['open-live', 'summary'],
     ['open-transcript', 'transcript'],
@@ -90,6 +248,7 @@ function updateNavigation(): void {
 async function send<T>(
   action:
     | AssistantAction
+    | EndAction
     | { type: 'STATUS' | 'STOP' | 'TRANSCRIPT_STATUS' }
     | { type: 'RETRY'; id: string }
     | { type: 'START'; tabId: number; title: string },
@@ -125,7 +284,7 @@ function selectDetail(
   for (const name of ['analysis', 'transcript', 'insights'])
     $(name + '-view').hidden = (name === 'analysis' ? 'summary' : name) !== detail;
   $('view-title').textContent =
-    next === 'summary' ? 'Live memo' : next === 'transcript' ? 'Transcript' : 'Session history';
+    next === 'summary' ? ended() ? 'Meeting notes' : 'Live memo' : next === 'transcript' ? 'Transcript' : 'Session history';
   $('view-heading').hidden = next === 'summary';
   if (focus) focusDetail();
   if (next === 'summary' && followSummary) requestAnimationFrame(jumpSummary);
@@ -152,7 +311,9 @@ $('leave-saved').onclick = () => {
 function focusDetail(): void {
   $(
     detail === 'summary'
-      ? memoCharacter.mode === 'contribution'
+      ? ended()
+        ? 'end-meeting-panel'
+        : memoCharacter.mode === 'contribution'
         ? 'contribution-view'
         : 'analysis-panel'
       : 'view-title',
@@ -391,6 +552,10 @@ function render(s: AssistantSnapshot, notify = false): void {
       });
   }
   snapshot = s;
+  if (ended()) {
+    updatePresence();
+    return;
+  }
   renderSummaries(s, notify);
   $<HTMLButtonElement>('deeper').disabled =
     !s.sessionId ||
@@ -489,7 +654,9 @@ function showEvidence(ids: number[], trigger: HTMLElement): void {
   if (!matches.length) return;
   sourceNavigation = true;
   $('transcript-back-label').textContent =
-    sourceReturnDetail === 'insights'
+    ended()
+      ? 'Back to meeting notes'
+      : sourceReturnDetail === 'insights'
       ? 'Back to history'
       : memoCharacter.mode === 'contribution'
         ? 'Back to Mimo’s thought'
@@ -514,7 +681,8 @@ function clearTranscript(): void {
   followTranscript = true;
 }
 function renderTranscript(s: TranscriptSnapshot, notify = false): void {
-  if (activeSession && s.sessionId && s.sessionId !== activeSession) return;
+  if (activeSession && s.sessionId && s.sessionId !== activeSession && !(ended() && s.sessionId === endJob?.sessionId)) return;
+  if (ended() && selectedEndSession && s.sessionId !== selectedEndSession) return;
   const previousCount =
     s.sessionId === transcript?.sessionId ? (transcript?.segments.length ?? 0) : 0;
   if (s.sessionId !== transcript?.sessionId) clearTranscript();
@@ -567,6 +735,13 @@ function renderTranscript(s: TranscriptSnapshot, notify = false): void {
   updatePresence();
 }
 function updatePresence(): void {
+  if (ended()) {
+    $('memo-recovery').hidden = true;
+    memoCharacter.endMeeting(true, endJob!.phase === 'generating' || endJob!.phase === 'waiting_transcript', endJob!.phase === 'failed', endJob!.phase === 'empty');
+    updateRecording();
+    return;
+  }
+  memoCharacter.endMeeting(false);
   const p = assistantPresence(recording, snapshot, transcript);
   const actionable = !!p.recovery;
   $('memo-recovery').hidden = !actionable;
@@ -607,7 +782,7 @@ function updateRecording(): void {
     : undefined;
   $('session-time').textContent = elapsed === undefined ? '' : time(elapsed);
   $<HTMLButtonElement>('stop').disabled = !isRecording || stopBusy;
-  const recoveringSave = recording.phase === 'save-failed' || saveBusy;
+  const recoveringSave = !ended() && (recording.phase === 'save-failed' || saveBusy);
   const recoveryFocused = $('audio-recovery').contains(document.activeElement);
   $('retry-save').hidden = !recoveringSave;
   $('audio-recovery').hidden = !recoveringSave;
@@ -618,8 +793,10 @@ function updateRecording(): void {
     $('start').focus({ preventScroll: true });
 }
 function updateSessionView(): void {
+  const end = ended();
   const live =
-    (replayView && !!snapshot?.sessionId) ||
+    end ||
+    (!endHidden && replayView && !!snapshot?.sessionId) ||
     reviewingSaved ||
     showLiveAssistant(
       recording,
@@ -649,6 +826,20 @@ function updateSessionView(): void {
   $('session-controls').hidden = !live;
   document.body.dataset.live = String(live);
   document.body.dataset.recording = recording.phase;
+  document.body.dataset.ended = String(end);
+  $('end-meeting-panel').hidden = !end;
+  $('last-meeting').hidden = !endJob || !endHidden || !!activeSession && endJob.sessionId !== activeSession;
+  if (end && endJob) endView.render(endJob);
+  if (end && endFocusRequested && panelView === 'assistant' && detail === 'summary') {
+    const heading = $('end-meeting-panel').querySelector<HTMLElement>('h2');
+    if (heading) {
+      heading.tabIndex = -1;
+      heading.focus({ preventScroll: true });
+      endFocusRequested = false;
+    }
+  }
+  pendingControls();
+  updateNavigation();
   $('leave-saved').hidden =
     !reviewingSaved || panelView === 'settings' || recording.phase !== 'idle';
   $('open-live').hidden = !live;
@@ -742,6 +933,9 @@ function recorder(s: Status): void {
   recording = s;
   if (['starting', 'recording'].includes(s.phase) && s.session && s.session.id !== activeSession) {
     reviewingSaved = false;
+    endHidden = false;
+    preparedDestination = false;
+    selectedEndSession = undefined;
     activeSession = s.session.id;
     uiError = '';
     $('ai-alert').hidden = true;
@@ -767,6 +961,13 @@ function recorder(s: Status): void {
     memoCharacter.reset(activeSession);
     selectDetail('summary', false);
   }
+  if (s.session?.id && destinationSession !== s.session.id) {
+    destinationSession = s.session.id;
+    void hasMeetingDirectory(s.session.id).then((exists) => {
+      if (destinationSession === s.session?.id) preparedDestination = exists;
+    }).catch(() => {});
+  }
+  if (s.endMeeting) receiveEnd(s.endMeeting);
   updatePresence();
   if (s.error) error(new Error(s.error));
 }
@@ -939,10 +1140,19 @@ $('resume').onclick = async () => {
 $('stop').onclick = async () => {
   if (stopBusy || recording.phase !== 'recording') return;
   stopBusy = true;
+  const ownedStopFocus = document.activeElement === $('stop');
+  endFocusRequested = ownedStopFocus;
   presentationEvent('ui.stop_clicked');
+  const stopping = endAndChooseFolder(recording.session?.id ?? activeSession, !preparedDestination);
   updateRecording();
   try {
-    recorder(await send<Status>({ type: 'STOP' }));
+    const result = await stopping;
+    // A native picker can restore focus after the first end-state update.
+    // Recover only the focus owned by this Stop, never another user's control.
+    if (ownedStopFocus && (document.activeElement === document.body || document.activeElement === $('stop')))
+      endFocusRequested = true;
+    receiveEnd(result);
+    recorder(await send<Status>({ type: 'STATUS' }));
   } catch (e) {
     error(e);
   } finally {
@@ -1036,6 +1246,10 @@ chrome.runtime.onMessage.addListener((m, sender, respond) => {
     liveAI = true;
     render(m.snapshot, true);
   }
+  if (m.type === 'END_STATE') {
+    receiveEnd(m.job);
+    void refreshPending(true);
+  }
   if (m.type === 'TRANSCRIPT_STATE') {
     liveTranscript = true;
     renderTranscript(m.snapshot, true);
@@ -1061,10 +1275,17 @@ void send<Status>({ type: 'STATUS' })
     if (!liveRecording) recorder(s);
   })
   .catch(error);
+void refreshEnd();
+$('last-meeting').onclick = () => {
+  endHidden = false;
+  updatePresence();
+  focusDetail();
+};
 setInterval(() => {
   if (!document.hidden) {
     updateAppearance();
     updatePresence();
+    void refreshEnd();
   }
 }, 1000);
 new ResizeObserver(() => {

@@ -1,5 +1,7 @@
 # Live memo v2: current understanding and additional contribution
 
+This document records the original two-layer live-v2 implementation and its dated activation/evaluation evidence. The 0.13.0 end-meeting source candidate now adds a separate complete-transcript minutes pipeline after Stop; see [End meeting](END-MEETING.md). Historical no-MoM statements below describe the earlier scope.
+
 This implementation follows the approved two-layer product direction. Version 0.9.0 Memo files have been installed into the main `dist` directory and the relay restarted with protocol 2; the existing Chrome extension still needs a user-performed Reload before its running state is confirmed. The earlier v1 replay remains historical evidence; MOM, ASR changes, new profiles and automatic browsing remain out of scope.
 
 ## Processing and public state
@@ -26,7 +28,7 @@ Scheduling remains one chain at a time, one-second arrival debounce, minimum ten
 
 IndexedDB `listen-live-memo-v2` is separate. Fallback reads v1 through a copy migration, preserving contribution identity/body/feedback and keeping it out of the narrative memo. Original v1/baseline stores are untouched. Restored sessions remain closed. New sessions clear both outputs only after existing transcription recovery requirements are satisfied. Memo persistence or AI failure cannot stop recording/ASR.
 
-Stop aborts automatic/deeper work and saves accepted state; audio export and pending transcription continue. Recovery cannot reactivate live output. There is no automatic final recap. Analyze deeper uses current understanding and relevant source context.
+Stop aborts automatic/deeper work and saves accepted state; audio export and pending transcription continue. Recovery cannot reactivate live output. In that original scope there was no automatic final recap. In the 0.13.0 candidate, a separate end-meeting controller waits for final complete ASR and produces reviewed whole-conversation minutes; it does not resume the stopped live chain. Analyze deeper continues to use current understanding and relevant source context.
 
 ## UI and evaluation
 

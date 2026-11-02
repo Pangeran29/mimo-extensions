@@ -50,11 +50,13 @@ chrome.runtime.onMessage.addListener((message, sender, respond) => {
 });
 import { panelViewKey, setupWarningKey } from './panel';
 import { isDownloadCancelled } from './download';
-import { assistantControl, assistantReadiness, initializeAssistant } from './assistant/settings';
+import { assistantControl, assistantReadiness, initializeAssistant, initializeEndConnection } from './assistant/settings';
 import type { AssistantAction } from './assistant/types';
 import { loadTranscript, recoveredTranscript, pendingWindows } from './transcription/store';
 import type { TranscriptSnapshot } from './transcription/types';
 import * as db from './db';
+import { getJob, listJobs } from './end-meeting/store';
+import type { EndAction, EndMeetingJob } from './end-meeting/types';
 import {
   errorText,
   type RecorderMessage,
@@ -67,6 +69,7 @@ let creating: Promise<void> | undefined;
 let restoringTranscription: Promise<void> | undefined;
 let restoringRecoveryAI: Promise<void> | undefined;
 let controls: Promise<unknown> = Promise.resolve();
+let captureStartRequests = 0;
 const exports = new Map<string, Promise<void>>();
 const finishing = new Map<number, Promise<void>>();
 async function hasRecorder(): Promise<boolean> {
@@ -79,6 +82,7 @@ async function hasRecorder(): Promise<boolean> {
   );
 }
 async function ensureRecorder(): Promise<void> {
+  if (creating) return creating;
   if (await hasRecorder()) return;
   if (!creating)
     creating = chrome.offscreen
@@ -87,9 +91,19 @@ async function ensureRecorder(): Promise<void> {
         reasons: [chrome.offscreen.Reason.USER_MEDIA, chrome.offscreen.Reason.BLOBS],
         justification: 'Record tab and microphone audio locally and export a recording file.',
       })
-      .then(() => {
+      .then(async () => {
         restoringTranscription = undefined;
         restoringRecoveryAI = undefined;
+        // Chrome can expose the offscreen context before its bundled module has
+        // installed the receiver. Probe read-only state before dispatching controls.
+        for (let attempt = 0; attempt < 75; attempt++) {
+          try {
+            const response = await chrome.runtime.sendMessage({ target: 'recorder', type: 'STATUS' });
+            if (response?.ok) return;
+          } catch { /* The document is still loading. */ }
+          await new Promise((resolve) => setTimeout(resolve, 40));
+        }
+        throw new Error('The recorder could not finish loading. Reopen Mimo and try again.');
       })
       .finally(() => {
         creating = undefined;
@@ -98,6 +112,9 @@ async function ensureRecorder(): Promise<void> {
 }
 async function recorder<T = Status>(message: RecorderMessage): Promise<T> {
   await diagnosticsReady;
+  // Read-only polls can arrive while a different request is still loading the
+  // offscreen module. They must join that startup instead of racing its receiver.
+  if (creating) await creating;
   const reply: Reply<T> = await chrome.runtime.sendMessage({
     ...message,
     diagnostics: diagnosticConfig(),
@@ -148,6 +165,8 @@ async function finishDownload(
         !live.retained.length &&
         !live.transcriptionBusy &&
         !live.assistantBusy
+        && !live.endMeetingBusy
+        && !captureStartRequests
       )
         await chrome.offscreen.closeDocument();
     } else if (cancelled) {
@@ -183,6 +202,7 @@ async function status(): Promise<Status> {
   await reconcileDownloads();
   if (await hasRecorder()) return recorder({ target: 'recorder', type: 'STATUS' });
   const rows = await db.sessions();
+  const endMeeting = (await listJobs().catch(() => []))[0];
   const active = rows.find((row) => row.downloadId !== undefined);
   if (active)
     return {
@@ -192,6 +212,7 @@ async function status(): Promise<Status> {
     };
   return {
     phase: 'idle',
+    endMeeting,
     retained: rows.map((row) =>
       row.status === 'capturing'
         ? {
@@ -209,6 +230,11 @@ async function save(id: string): Promise<void> {
   const task = (async () => {
     const session = await db.getSession(id);
     if (!session) throw new Error('Recording no longer exists.');
+    if (session.exportKind) {
+      await ensureRecorder();
+      await recorder({ target: 'recorder', type: 'END_SAVE', sessionId: id });
+      return;
+    }
     if (session.downloadId !== undefined) {
       const [item] = await chrome.downloads.search({ id: session.downloadId });
       if (item?.state === 'in_progress') throw new Error('This recording is already downloading.');
@@ -273,6 +299,13 @@ async function save(id: string): Promise<void> {
 }
 async function control(message: UIMessage): Promise<Status> {
   switch (message.type) {
+    case 'END_MEETING':
+    case 'END_STATUS':
+    case 'END_DESTINATION':
+    case 'END_RETRY':
+    case 'END_SAVE':
+    case 'END_DISCARD':
+      throw new Error('Use the end-meeting message handler.');
     case 'STATUS':
       return status();
     case 'TRANSCRIPT_STATUS':
@@ -385,6 +418,40 @@ chrome.runtime.onMessage.addListener(
   ) => {
     if (sender.id !== chrome.runtime.id || message.target !== 'worker') return;
     if (message.type === 'AGENT_REPORT_EXPORT') return;
+    if (message.type === 'END_CONNECTION') {
+      void initializeEndConnection(message.settings).then(() => respond({ ok: true }))
+        .catch(() => respond({ ok: false, error: 'The saved meeting connection could not be restored.' }));
+      return true;
+    }
+    if (message.type === 'END_STATE') {
+      void chrome.runtime.sendMessage({ target: 'ui', type: 'END_STATE', job: message.job }).catch(() => {});
+      respond({ ok: true });
+      return;
+    }
+    if (['END_MEETING', 'END_STATUS', 'END_DESTINATION', 'END_RETRY', 'END_SAVE', 'END_DISCARD'].includes(message.type)) {
+      const action = message as EndAction;
+      if (action.sessionId !== undefined && typeof action.sessionId !== 'string') {
+        respond({ ok: false, error: 'Invalid meeting session.' });
+        return;
+      }
+      void (async (): Promise<EndMeetingJob | undefined> => {
+        if (action.type === 'END_STATUS')
+          return action.sessionId ? getJob(action.sessionId) : (await listJobs())[0];
+        if (action.type === 'END_MEETING' && !(await hasRecorder())) {
+          const saved = action.sessionId ? await getJob(action.sessionId) : (await listJobs())[0];
+          const retained = action.sessionId ? await db.getSession(action.sessionId) : undefined;
+          if (saved || !retained?.exportKind) return saved;
+        }
+        await ensureRecorder();
+        if (action.type === 'END_RETRY') {
+          const job = await getJob(action.sessionId);
+          if (job) await initializeEndConnection(job.settings);
+        }
+        return recorder<EndMeetingJob | undefined>({ ...action, target: 'recorder' });
+      })().then((value) => respond({ ok: true, value }))
+        .catch((error) => respond({ ok: false, error: errorText(error) }));
+      return true;
+    }
     if (message.type.startsWith('REPLAY_')) {
       const action = message as import('./replay/types').ReplayAction;
       if (!REPLAY_LAB) {
@@ -472,7 +539,9 @@ chrome.runtime.onMessage.addListener(
         };
       };
       // Status reads must stay responsive while a start is acquiring/validating its file.
-      const task = action.type === 'REPLAY_STATUS' ? replayControl() : controls.then(replayControl);
+      if (action.type === 'REPLAY_START') captureStartRequests++;
+      const task = (action.type === 'REPLAY_STATUS' ? replayControl() : controls.then(replayControl))
+        .finally(() => { if (action.type === 'REPLAY_START') captureStartRequests--; });
       if (action.type !== 'REPLAY_STATUS') controls = task.catch(() => {});
       void task
         .then((value) => respond({ ok: true, value }))
@@ -566,7 +635,7 @@ chrome.runtime.onMessage.addListener(
         .catch((error) => respond({ ok: false, error: errorText(error) }));
       return true;
     }
-    if (message.type === 'TRANSCRIPTION_SETTLED' || message.type === 'ASSISTANT_SETTLED') {
+    if (message.type === 'TRANSCRIPTION_SETTLED' || message.type === 'ASSISTANT_SETTLED' || message.type === 'END_SETTLED') {
       void (async () => {
         if (!(await hasRecorder())) return;
         const live = await recorder({ target: 'recorder', type: 'STATUS' });
@@ -576,6 +645,8 @@ chrome.runtime.onMessage.addListener(
           !live.retained.length &&
           !live.transcriptionBusy &&
           !live.assistantBusy
+          && !live.endMeetingBusy
+          && !captureStartRequests
         )
           await chrome.offscreen.closeDocument();
         await broadcast(await status());
@@ -604,7 +675,9 @@ chrome.runtime.onMessage.addListener(
       return;
     }
     // Serialize controls so fast clicks cannot create duplicate streams or discard during start.
-    const task = controls.then(() => control(message as UIMessage));
+    if (message.type === 'START') captureStartRequests++;
+    const task = controls.then(() => control(message as UIMessage))
+      .finally(() => { if (message.type === 'START') captureStartRequests--; });
     controls = task.catch(() => {});
     void task
       .then(async (value) => {

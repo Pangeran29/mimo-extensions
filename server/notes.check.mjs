@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { once, EventEmitter } from 'node:events';
 import { Readable } from 'node:stream';
 import { createRelay } from './relay.mjs';
-import { NOTES_MODEL, NOTES_TIMEOUT_MS, serveNotes } from './notes.mjs';
+import { NOTES_MODEL, NOTES_TIMEOUT_MS, MOM_TIMEOUT_MS, serveNotes } from './notes.mjs';
 const sse =
   'data: {"choices":[{"delta":{"content":"{}"},"finish_reason":"stop"}]}\n\ndata: [DONE]\n\n';
 async function fixture(t, providerFetch) {
@@ -108,6 +108,40 @@ test('redacts provider error bodies while preserving retry status', async (t) =>
   assert.equal(response.status, 429);
   assert.equal(response.headers.get('retry-after'), '13');
   assert.ok(!(await response.text()).includes('provider-secret'));
+});
+
+test('allows only versioned MoM schemas their larger output limit while preserving live limits', async (t) => {
+  let calls = 0;
+  const url = await fixture(t, async () => { calls++; return new Response(sse, { headers: { 'Content-Type': 'text/event-stream' } }); });
+  for (const name of ['meeting_minutes_extract_v1', 'meeting_minutes_compose_v1', 'meeting_minutes_review_v1']) {
+    const response = await fetch(url + '/v1/openai/chat/completions', request({ ...body, max_tokens: 3200, response_format: { type: 'json_schema', json_schema: { name, schema: { type: 'object' } } } }));
+    assert.equal(response.status, 200); await response.text();
+  }
+  for (const name of ['meeting_minutes_unknown_v1', 'live_memo_review_v2']) {
+    const response = await fetch(url + '/v1/openai/chat/completions', request({ ...body, max_tokens: 3200, response_format: { type: 'json_schema', json_schema: { name, schema: { type: 'object' } } } }));
+    assert.equal(response.status, 400); await response.text();
+  }
+  assert.equal(calls, 3);
+  const health = await fetch(url + '/health', { headers: { Authorization: 'Bearer relay-token' } });
+  assert.deepEqual((await health.json()).notes.supportedEndMeetingProtocols, [1]);
+});
+
+test('MoM has an independent 60-second relay deadline', async (t) => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const value = { ...body, max_tokens: 3200, response_format: { type: 'json_schema', json_schema: { name: 'meeting_minutes_compose_v1', schema: { type: 'object' } } } };
+  const req = Readable.from([Buffer.from(JSON.stringify(value))]); req.headers = { 'content-type': 'application/json' };
+  const res = new EventEmitter(); res.writableEnded = false; res.headersSent = false;
+  const slots = { active: 0 }; const replies = [];
+  let signal, entered;
+  const ready = new Promise(resolve => { entered = resolve; });
+  const work = serveNotes(req, res, { apiKey: 'provider-secret', slots, cors: {}, reply: status => { replies.push(status); res.writableEnded = true; }, providerFetch: async (_url, options) => {
+    signal = options.signal; entered();
+    return new Promise((_resolve, reject) => signal.addEventListener('abort', () => reject(new Error('private detail')), { once: true }));
+  } });
+  await ready;
+  t.mock.timers.tick(NOTES_TIMEOUT_MS); assert.equal(signal.aborted, false);
+  t.mock.timers.tick(MOM_TIMEOUT_MS - NOTES_TIMEOUT_MS); await work;
+  assert.equal(signal.aborted, true); assert.deepEqual(replies, [504]); assert.equal(slots.active, 0);
 });
 
 test('preserves provider 503 backoff and exposes it to the permitted extension', async (t) => {

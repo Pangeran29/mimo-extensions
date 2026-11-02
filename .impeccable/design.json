@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-11-01T17:34:45.446756Z",
+  "generatedAt": "2026-11-02T09:41:47.974850Z",
   "title": "Design System: Mimo",
   "extensions": {
     "sourceOfTruth": {
@@ -20,11 +20,15 @@
         "src/appearance.ts",
         "public/mimo.css",
         "src/mimo/mascot.ts",
-        "src/mimo/presentation.ts"
+        "src/mimo/presentation.ts",
+        "src/end-meeting/view.ts",
+        "src/end-meeting/ui.ts",
+        "src/end-meeting/presentation.ts",
+        "src/end-meeting/controller.ts"
       ],
-      "scope": "Reviewed Mimo 0.12.2 source candidate, 2026-11-01; inherited Daylight/Midnight mint-and-violet world retained. Normal 44-file candidate build 2026-11-01T17:17:39.527Z and separate research 51-file build 2026-11-01T17:31:30.256Z remain unpromoted and unactivated. Latest user-reported installed version is 0.12.1 in both profiles. Main recording was active at the latest observation; Stop & Save authorization, promotion and relay restart remain pending. Historical version evidence is preserved in PRODUCT.md and artifact records.",
+      "scope": "Mimo 0.13.0 end-meeting source candidate, 2026-11-02; inherited Daylight/Midnight mint-and-violet world retained. Normal 44-file candidate build 2026-11-02T09:46:37.179Z and separate research 51-file candidate 2026-11-02T09:48:51.172Z are under artifacts/end-meeting-2026-11-02/{build,replay-build}. Promotion, Reload and managed relay update remain pending. Latest user-reported installed version is 0.12.1 in both profiles. Prior 0.12.2 compact-control and live-recovery evidence remains historical.",
       "componentPreview": "Scoped, self-contained HTML/CSS using source semantic CSS variables with Daylight fallbacks. Illustrative reading text is not product output. The canonical raster is referenced by asset metadata rather than approximated in the preview.",
-      "review": "artifacts/mimo-stability-2026-11-01/frontend-finish-review.md: ship, no material fixes. Independent code review: no actionable findings. 102 focused UI assertions/nine captures; 27 disposable actual-Chrome pipeline assertions/five captures with fixed synthetic ASR/LLM responses; 299 unit, 15 relay and five additional Node tests plus offline tools/typecheck/build pass. Compact 210 CSS evidence is not new native 200% proof; EOF lifecycle is checkpoint/report-backed, not visible in the held PNG. Zero paid inference; no model-quality, provider-health, latency or activation claim."
+      "review": "Final source passes 357 unit tests/40 files, 17 relay and five additional Node tests, offline tools, typecheck and build. Final synthetic UI has 41 total assertions/seven captures, superseding base 38/six; unfinished-result follow-up has ten/two. Actual disposable Chrome integration has 38 assertions/six captures on build 2026-11-02T09:42:23.769Z, including OPFS exporter, startup polling, native 200% preview and Stop focus. Its 118-file hash is unchanged within that run; latest source differs only by the subsequent controller cleanup-metadata acknowledgement fix, covered by final project tests and scoped core verdict. Frontend verdict: ship — scoped fixes for truthful failed/empty cues and cleanup retry; core verdict: ship at reviewed F1–F3 fix scope. Native OS folder selection remains manual; OPFS selection is substituted. Zero paid inference; no real model-quality, provider-health, latency or activation claim. See artifacts/end-meeting-2026-11-02/IMPLEMENTATION.md and build-verification.json."
     },
     "colorMeta": {
       "live-field": {
@@ -1084,6 +1088,15 @@
       "embeddedSettings": "Settings uses its normal portrait. Existing same-origin MIMO_HOST_COMPANION message reports Live companion absent on Settings.",
       "targets": "88×76px ordinary; 80×68px at ≤300px; 64×54px at ≤240px. Only transparent top target space is trimmed; visible pose/fallback bodies remain inside.",
       "clock": "12px tabular numerals, 4px top padding, 5px dot gap; row translated 9px horizontally to center the 26px painted Stop with the clock."
+    },
+    "endMeeting": {
+      "surfaceRecord": ".impeccable/surfaces/end-meeting.md",
+      "reader": "One selected ended session replaces live reading with factual bullets, state copy and a divided save area; stopped live contributions cannot reopen.",
+      "typography": "Heading 24px/1.25 weight 650; bullets 17px/1.65, 16px at ≤280px; status 14px/1.6; save/actions 13px; file metadata 12px. Heading 22px at ≤240px.",
+      "geometry": "Ended inset 76px, 64px at ≤280px, 52px at ≤240px; gutters 24px, 16px at ≤280px. Reader scrolls within the violet field.",
+      "actions": "44px minimum text actions; authored Sources target 36px. Stable labeled footer, source Back to the selected result, and Stop-owned heading focus.",
+      "retention": "Latest fully saved completed reader plus unfinished local jobs; Replay Lab run archive remains separate.",
+      "evidenceBoundary": "Renderer fixtures and real OPFS writer tests do not complete a native OS folder picker or its permission prompt. See FSA-EVIDENCE.md."
     }
   },
   "components": [
@@ -1178,7 +1191,7 @@
   ],
   "narrative": {
     "northStar": "Stay with the conversation",
-    "overview": "Mimo gives accepted understanding a vivid, stable place to read. Saturated violet anchors the family; pale periwinkle or midnight surfaces keep supporting tasks legible. The original mint jelly identity adds a friendly, tactile presence through transparent artwork, expressive poses, and bounded squash and stretch.\n\nNative system type and direct controls suit sustained listening and reading in Chrome. Expression belongs to Mimo and short interaction responses. Accepted text stays still while the companion acknowledges a real change. The Daylight and Midnight world continues from the preceding frontend; the reviewed Mimo 0.12.2 source candidate retains understanding and the active contribution on the same violet reading ground, with Mimo on its upper seam and unboxed recording controls directly below the character on Live memo.",
+    "overview": "Mimo gives accepted understanding a vivid, stable place to read. Saturated violet anchors the family; pale periwinkle or midnight surfaces keep supporting tasks legible. The original mint jelly identity adds a friendly, tactile presence through transparent artwork, expressive poses, and bounded squash and stretch.\n\nNative system type and direct controls suit sustained listening and reading in Chrome. Expression belongs to Mimo and short interaction responses. Accepted text stays still while the companion acknowledges a real change. The Daylight and Midnight world continues from the preceding frontend; the Mimo 0.13.0 source candidate retains understanding and the active contribution on the same violet reading ground, with Mimo on its upper seam and unboxed recording controls directly below the character on Live memo. Stop now leads to a separate Meeting notes reader on that field, with factual bullets first and file status/actions below. The candidate remains separate from installed 0.12.1; current evidence and limits are in `artifacts/end-meeting-2026-11-02/IMPLEMENTATION.md`.",
     "keyCharacteristics": [
       "A constant violet reading field for understanding and the active contribution in Daylight and Midnight.",
       "One reading space: understanding is home; an additional thought replaces it while being read.",
@@ -1221,7 +1234,7 @@
       "Don't stack a contribution beneath understanding or overlay it as a speech bubble in the current live surface.",
       "Don't move accepted text or steal focus from a control that remains visible merely to announce an update.",
       "Don't use character motion as an audio-level meter or an unbounded processing spinner.",
-      "Don't generate whole-session minutes when Stop is pressed."
+      "Don't let live contributions or recovery publish into the post-meeting reader; final minutes wait for complete ASR and use the full transcript."
     ]
   }
 }

@@ -54,10 +54,15 @@ afterEach(async()=>{
   vi.restoreAllMocks();vi.unstubAllGlobals();
 });
 async function start(){await engine.start('stream',1,'YouTube');}
+async function startLegacy(){
+  await start();
+  // Existing retained recordings predate the new bundle export policy.
+  await db.updateSession((await engine.status()).session!.id,{exportKind:undefined});
+}
 async function finalized(){await vi.waitFor(()=>expect(ready).toHaveBeenCalledTimes(1));return (await engine.status()).session!;}
 describe('recording lifecycle',()=>{
   it('keeps the three streams isolated and retries only unfinished files',async()=>{
-    await start();
+    await startLegacy();
     ['combined-','microphone-','tab-'].forEach((data,index)=>FakeRecorder.instances[index].ondataavailable?.({data:new Blob([data])}));
     engine.stop();const session=await finalized();
     for(const [source,expected] of [['mixed','combined-final'],['microphone','microphone-final'],['tab','tab-final']] as const){
@@ -107,7 +112,7 @@ describe('recording lifecycle',()=>{
     expect(await db.sessions()).toHaveLength(0);
   });
   it('keeps audio after interrupted download, supports retry, and deletes only on success',async()=>{
-    await start();engine.stop();const session=await finalized();
+    await startLegacy();engine.stop();const session=await finalized();
     await engine.export(session.id);
     expect(URL.revokeObjectURL).not.toHaveBeenCalled();
     await engine.downloadDone(session.id,false,'Download canceled');
@@ -123,7 +128,7 @@ describe('recording lifecycle',()=>{
     expect((await engine.status()).phase).toBe('idle');
   });
   it('treats canceled saving as a clean finish and skips the remaining exports',async()=>{
-    await start();engine.stop();const session=await finalized();
+    await startLegacy();engine.stop();const session=await finalized();
     await engine.export(session.id);
     await engine.downloadDone(session.id,false,undefined,true);
     const status=await engine.status();
@@ -136,7 +141,7 @@ describe('recording lifecycle',()=>{
     expect((await engine.status()).phase).toBe('idle');
   });
   it('cleans remaining audio when a separate export is canceled after saving the mix',async()=>{
-    await start();engine.stop();const session=await finalized();
+    await startLegacy();engine.stop();const session=await finalized();
     await engine.export(session.id);await engine.downloadDone(session.id,true);
     expect((await db.getSession(session.id))?.savedSources).toEqual(['mixed']);
     await engine.export(session.id);
@@ -158,12 +163,37 @@ describe('recording lifecycle',()=>{
     await engine.discard(id);expect(await db.sessions()).toHaveLength(0);
   });
   it('recovers committed interrupted audio in a fresh engine without claiming it is live',async()=>{
-    await start();FakeRecorder.instances[0].ondataavailable?.({data:new Blob(['committed'])});
+    await startLegacy();FakeRecorder.instances[0].ondataavailable?.({data:new Blob(['committed'])});
     await vi.waitFor(async()=>expect((await db.sessions())[0].chunks).toBe(1));
     const fresh=new RecorderEngine(vi.fn(),vi.fn());
     const status=await fresh.status();expect(status.phase).toBe('idle');expect(status.retained).toHaveLength(1);
     const id=status.retained[0].id;await fresh.export(id);
     expect((await db.getSession(id))?.partial).toBe(true);
     engine.stop();await finalized();
+  });
+  it('retains a finished bundle while allowing the next capture and protecting its audio',async()=>{
+    await start();engine.stop();const previous=await finalized();
+    expect(previous.exportKind).toBe('meeting-bundle-v1');
+    expect((await engine.status()).phase).toBe('idle');
+    await expect(engine.export(previous.id)).rejects.toThrow('Save meeting');
+    expect(await (await db.audioBlob(previous.id,'audio/webm')).text()).toBe('final');
+    await start();
+    const current=(await engine.status()).session!;
+    await expect(engine.completeBundle(current.id)).rejects.toThrow('still recording');
+    await engine.completeBundle(previous.id);
+    expect((await engine.status()).phase).toBe('recording');
+    expect(await db.getSession(previous.id)).toBeUndefined();
+    expect(await db.getSession(current.id)).toBeDefined();
+    engine.stop();await vi.waitFor(()=>expect(ready).toHaveBeenCalledTimes(2));
+  });
+  it('can stop from its in-memory identity even if audio-session reads fail',async()=>{
+    await start();
+    const id=engine.captureState().session!.id;
+    const read=vi.spyOn(db,'sessions').mockRejectedValue(new Error('Local storage read failed'));
+    expect(engine.captureState().session!.id).toBe(id);
+    engine.stop();
+    await vi.waitFor(()=>expect(ready).toHaveBeenCalledOnce());
+    expect(tracks.every(track=>track.readyState==='ended')).toBe(true);
+    read.mockRestore();
   });
 });

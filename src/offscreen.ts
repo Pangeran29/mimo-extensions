@@ -39,6 +39,68 @@ const assistant = new AssistantController(
 import { RecorderEngine } from './engine';
 import { Transcriber } from './transcription/controller';
 import { errorText, type RecorderMessage, type Reply, type Status } from './types';
+import * as audioDB from './db';
+import { MIME } from './types';
+import { DEFAULT_SETTINGS, type AssistantSettings } from './assistant/types';
+import { EndMeetingController } from './end-meeting/controller';
+import type { EndMeetingJob, EndReason } from './end-meeting/types';
+import { ReplayRecorder } from './replay/recorder';
+import { loadTranscript } from './transcription/store';
+import { endJobSettled, recoveredEndTranscript } from './end-meeting/lifecycle';
+let endSettings: AssistantSettings = { ...DEFAULT_SETTINGS };
+let endError: string | undefined;
+let endObservations = Promise.resolve();
+let endObservationCount = 0;
+const replayRecorder = new ReplayRecorder();
+const endMeeting = new EndMeetingController({
+  changed: (job) => {
+    void chrome.runtime.sendMessage({ target: 'worker', type: 'END_STATE', job }).catch(() => {});
+    if (REPLAY_LAB) {
+      replayWrites = replayWrites.then(async () => {
+        const run = replayRun?.sessionId === job.sessionId
+          ? replayRun : (await listRuns()).find((r) => r.sessionId === job.sessionId);
+        if (run) { run.endMeeting = structuredClone(job); await updateRun(run); }
+      }).catch(() => {});
+    }
+  },
+  settled: () => {
+    void chrome.runtime.sendMessage({ target: 'worker', type: 'END_SETTLED' }).catch(() => {});
+    if (replayRun?.phase === 'stopping') void saveReplayFinal();
+  },
+  loadAudio: (id) => audioDB.audioBlob(id, MIME, 'mixed'),
+  releaseAudio: (id) => engine.completeBundle(id),
+  event: (sessionId, kind, data) => {
+    if (!REPLAY_LAB) return;
+    replayWrites = replayWrites.then(async () => {
+      const run = replayRun?.sessionId === sessionId
+        ? replayRun : (await listRuns()).find((r) => r.sessionId === sessionId);
+      if (run) await appendEvent(run.id, `end.${kind}`, data, run.sourceMs);
+    }).catch(() => {});
+  },
+});
+const endReady = endMeeting.restore().catch((error) => { endError = errorText(error); });
+
+async function beginEndSession(
+  session: { id: string; createdAt: number; sourceTitle: string; durationMs: number; endSettings?: AssistantSettings },
+  reason: EndReason,
+): Promise<EndMeetingJob> {
+  await endReady;
+  return endMeeting.begin({
+    sessionId: session.id, createdAt: session.createdAt, sourceTitle: session.sourceTitle,
+    durationMs: session.durationMs, reason, settings: { ...(session.endSettings ?? endSettings) },
+    ...(replayRun?.sessionId === session.id ? { replayRunId: replayRun.id } : {}),
+  });
+}
+async function bundleAudioReady(id: string): Promise<void> {
+  const session = await audioDB.getSession(id);
+  if (!session?.exportKind) {
+    await chrome.runtime.sendMessage({ target: 'worker', type: 'READY', id });
+    return;
+  }
+  await beginEndSession(session, session.partial ? 'source-error' : 'manual');
+  await endMeeting.audioReady(id);
+  await endMeeting.updateTranscript(await transcription.status());
+}
 const assistantReady = loadAssistant()
   .then((s) => {
     if (s) assistant.restore(recoveredAssistant(s));
@@ -50,7 +112,6 @@ let agentFinalizing = false;
 let replayRun: ReplayRun | undefined;
 let replaySource: ReplayAudioSource | undefined;
 let replayTimer: ReturnType<typeof setInterval> | undefined;
-let replayDrainDeadline = 0;
 let replayWrites = Promise.resolve();
 let replayAssistantSignature = '';
 let replayTranscriptSignature = '';
@@ -117,15 +178,19 @@ async function replayStatus(): Promise<ReplayStatus> {
     durationMs: replayRun?.durationMs,
     transcriptionBusy: transcription.busy,
     assistantBusy: assistant.busy || assistant.liveProgress().queued || agentFinalizing,
+    endMeetingBusy: endMeeting.busy,
     error: replayRun?.error,
   };
 }
 async function saveReplayFinal(): Promise<void> {
-  if (!replayRun || replaySettling || replayRun.endedAt || transcription.busy || assistant.busy || agentFinalizing)
+  if (!replayRun || replayStopping || replaySettling || replayRun.endedAt || transcription.busy || assistant.busy || agentFinalizing || endMeeting.busy)
     return;
   replaySettling = true;
   const run = replayRun;
   try {
+    const end = await endMeeting.get(run.sessionId);
+    const endingTranscript = await transcription.status();
+    if (!endJobSettled(end, endingTranscript, transcription.busy)) return;
     await settleAgentReport();
     run.agentReport = await readAgentReport(run.sessionId).catch(() => undefined);
     if (run.agentReport?.session.limited || run.agentReport?.session.storageError) run.partial = true;
@@ -133,10 +198,11 @@ async function saveReplayFinal(): Promise<void> {
       run.finalAssistant = structuredClone(assistant.snapshot);
     const transcript = await transcription.status();
     if (transcript.sessionId === run.sessionId) run.finalTranscript = transcript;
+    run.endMeeting = await endMeeting.get(run.sessionId);
     if (
       run.finalTranscript?.incomplete ||
       run.finalTranscript?.phase === 'failed' ||
-      run.finalAssistant?.analysisError
+      run.finalAssistant?.analysisError || run.endMeeting?.phase === 'failed'
     )
       run.partial = true;
     run.endedAt = Date.now();
@@ -167,6 +233,9 @@ async function stopReplay(reason: ReplayRun['stopReason'] = 'manual'): Promise<v
   try {
     const run = replayRun;
     run.sourceMs = replaySource?.positionMs ?? run.sourceMs;
+    // Stop audible playback at the user's boundary, independently of storage,
+    // final ASR, or any destination write that may take longer.
+    replaySource?.audio.pause();
     run.stopReason = reason;
     run.partial ||= reason !== 'eof';
     run.phase = 'stopping';
@@ -176,13 +245,47 @@ async function stopReplay(reason: ReplayRun['stopReason'] = 'manual'): Promise<v
     // The same explicit Stop boundary as live capture: no late memo publication.
     assistant.stopCapture();
     stopAgentDiagnostics(run.sessionId);
+    const begun = beginEndSession({
+      id: run.sessionId, createdAt: run.startedAt, sourceTitle: run.source.name,
+      durationMs: run.sourceMs,
+    }, reason === 'eof' ? 'eof' : reason === 'manual' ? 'manual' : reason === 'interrupted' ? 'interrupted' : 'source-error').then(
+      (job) => ({ job, error: undefined }),
+      (error) => ({ job: undefined, error }),
+    );
+    const audio = replayRecorder.stop(run.sourceMs, reason !== 'eof').then(
+      (session) => ({ session, error: undefined }),
+      (error) => ({ session: undefined, error: errorText(error) }),
+    );
     await transcription.stopCapture();
+    const savedAudio = await audio;
     await replaySource?.release();
     replaySource = undefined;
+    const beginning = await begun;
+    if (beginning.error) throw beginning.error;
+    if (savedAudio.session?.error) {
+      run.partial = true;
+      run.error = 'Some replay audio could not be recorded. Retained audio may be incomplete.';
+    }
+    await endMeeting.audioReady(run.sessionId, savedAudio.error);
+    const finalTranscript = await transcription.status();
+    await endMeeting.updateTranscript(finalTranscript.sessionId === run.sessionId
+      ? finalTranscript
+      : { ...finalTranscript, sessionId: run.sessionId, segments: [], phase: 'failed', incomplete: true });
     await replayWrites;
     await updateRun(run).catch(() => {});
     await publishReplayStatus();
+  } catch (error) {
+    if (replayRun) {
+      replayRun.partial = true;
+      replayRun.error = 'The replay stopped, but its end results need recovery. Retained audio is preserved.';
+      replayRun.phase = 'error';
+      replayRun.endedAt = Date.now();
+      await updateRun(replayRun).catch(() => {});
+    }
+    endError = errorText(error);
   } finally {
+    await replaySource?.release().catch(() => {});
+    replaySource = undefined;
     replayStopping = false;
   }
   await saveReplayFinal();
@@ -194,28 +297,12 @@ async function tickReplay(): Promise<void> {
   await updateRun(replayRun).catch(() => {
     if (replayRun) replayRun.partial = true;
   });
-  if (replayRun.phase === 'draining') {
-    const progress = assistant.liveProgress();
-    const transcript = await transcription.status();
-    const lastSegment = Math.max(-1, ...transcript.segments.map((s) => s.id));
-    if (
-      !transcription.busy &&
-      !assistant.busy &&
-      !progress.queued &&
-      assistant.snapshot.lastSegmentId >= lastSegment
-    )
-      await stopReplay('eof');
-    else if (Date.now() >= replayDrainDeadline) {
-      replayRun.error = 'Replay reached its 60-second drain limit. Pending work is recorded as incomplete.';
-      await stopReplay('drain-timeout');
-    }
-  }
   await publishReplayStatus();
 }
 async function startReplay(sourceId: string, monitor = false): Promise<ReplayStatus> {
   if (!REPLAY_LAB) throw Error('Replay Lab is available only in the research build.');
   await recoverReplay();
-  if (replayActive() || engine.busy || transcription.busy || assistant.busy)
+  if (replayActive() || engine.busy || transcription.busy || assistant.busy || endMeeting.busy)
     throw Error('Wait until the current capture and AI work have finished.');
   const source = await getSource(sourceId);
   const blob = await getSourceBlob(sourceId);
@@ -261,16 +348,14 @@ async function startReplay(sourceId: string, monitor = false): Promise<ReplaySta
     await transcription.start(replaySource.destination.stream, id, replaySource.context);
     if ((await transcription.status()).phase !== 'transcribing')
       throw Error('Speech detection could not start. Check transcription in Settings.');
+    await replayRecorder.start(replaySource.destination.stream, id, replayRun.startedAt, source.name);
     replaySource.audio.onended = () => {
       if (!replayRun || replayRun.sessionId !== id || replayRun.phase !== 'playing') return;
       replayRun.sourceMs = replaySource?.positionMs ?? replayRun.durationMs ?? 0;
-      replayRun.phase = 'draining';
-      replayDrainDeadline = Date.now() + 60000;
-      replayEvent('source-ended', { drainDeadlineMs: 60000 });
-      // Flush the final VAD window while the memo remains live. This is replay
-      // EOF, distinct from the user's Stop, so the final speech gets evaluated.
-      void transcription.stopCapture().catch(() => {});
-      void publishReplayStatus();
+      replayEvent('source-ended', { endMeetingProtocol: 1 });
+      // EOF closes live publication immediately. Final ASR and minutes use the
+      // same durable end-session pipeline as a real user's Stop.
+      void stopReplay('eof').catch((error) => { endError = errorText(error); });
     };
     replaySource.audio.onerror = () => {
       if (!replayRun || replayRun.sessionId !== id) return;
@@ -349,6 +434,17 @@ const visibleAssistants = new Set<chrome.runtime.Port>();
 const transcription = new Transcriber(
   (snapshot, ephemeral) => {
     if (!ephemeral && assistantSessionId === snapshot.sessionId) assistant.observe(snapshot);
+    if (!ephemeral && snapshot.sessionId && !['ready', 'loading', 'unavailable'].includes(snapshot.phase)) {
+      const observed = structuredClone(snapshot);
+      endObservationCount++;
+      endObservations = endObservations.catch(() => {}).then(async () => {
+        await endReady;
+        await endMeeting.updateTranscript(observed);
+      }).catch((error) => { endError = errorText(error); }).finally(() => {
+        endObservationCount--;
+        void chrome.runtime.sendMessage({ target: 'worker', type: 'END_SETTLED' }).catch(() => {});
+      });
+    }
     if (!ephemeral && replayRun?.sessionId === snapshot.sessionId) {
       const signature = JSON.stringify([snapshot.phase, snapshot.segments]);
       if (signature !== replayTranscriptSignature) {
@@ -376,7 +472,7 @@ const engine = new RecorderEngine(
       .catch(() => {});
   },
   (id) => {
-    void chrome.runtime.sendMessage({ target: 'worker', type: 'READY', id }).catch(() => {});
+    void bundleAudioReady(id).catch((error) => { endError = errorText(error); });
   },
   {
     start: async (stream, id, context) => {
@@ -395,6 +491,10 @@ const engine = new RecorderEngine(
     },
     stopCapture: async () => {
       assistant.stopCapture();
+      const current = (await engine.status()).session;
+      if (current?.exportKind)
+        await beginEndSession(current, current.error ? 'source-error' : 'manual')
+          .catch((error) => { endError = errorText(error); });
       await transcription.stopCapture();
       if (!transcription.busy) assistant.finish();
     },
@@ -403,14 +503,20 @@ const engine = new RecorderEngine(
 async function liveStatus(): Promise<Status> {
   await recoverReplay();
   const normal = await engine.status();
+  const endStatus = {
+    endMeetingBusy: endMeeting.busy || endObservationCount > 0,
+    endMeeting: await endMeeting.get(normal.session?.id ?? replayRun?.sessionId).catch(() => undefined),
+    endMeetingError: endError,
+  };
   if (replayRun) {
     return {
       ...normal,
+      ...endStatus,
       phase:
         replayRun.phase === 'starting'
           ? 'starting'
           : replayRun.phase === 'stopping'
-            ? 'stopping'
+            ? replaySource ? 'stopping' : 'idle'
             : replayActive()
               ? 'recording'
               : 'idle',
@@ -420,7 +526,7 @@ async function liveStatus(): Promise<Status> {
         sourceTitle: replayRun.source.name,
         tabId: -1,
         filename: replayRun.source.name,
-        status: replayActive() ? 'capturing' : 'ready',
+        status: replayActive() && !!replaySource ? 'capturing' : 'ready',
         bytes: 0,
         chunks: 0,
         durationMs: replaySource?.positionMs ?? replayRun.sourceMs,
@@ -438,6 +544,7 @@ async function liveStatus(): Promise<Status> {
   }
   return {
     ...normal,
+    ...endStatus,
     transcriptionBusy: transcription.busy,
     assistantBusy: assistant.busy || agentFinalizing,
   };
@@ -452,6 +559,8 @@ chrome.runtime.onMessage.addListener((message: RecorderMessage, sender, respond)
         await diagnosticsReady;
         assistant.setMemoPolicy(diagnosticConfig().policy);
         assistant.configure(message.settings);
+        endSettings = { ...message.settings };
+        endMeeting.configure(message.settings, message.apiKey ?? '');
         if (
           message.settings.enabled &&
           (message.apiKey || message.settings.provider === 'deepinfra')
@@ -497,7 +606,8 @@ chrome.runtime.onMessage.addListener((message: RecorderMessage, sender, respond)
         if (transcription.busy) throw new Error('Wait until the current transcript has finished.');
         agentDiagnosticOptIn = message.agentDiagnostics === true;
         replayRun = undefined;
-        await engine.start(message.streamId, message.tabId, message.title);
+        await endObservations;
+        await engine.start(message.streamId, message.tabId, message.title, endSettings);
         break;
       case 'REPLAY_START':
         return startReplay(message.sourceId, message.monitor);
@@ -506,6 +616,58 @@ chrome.runtime.onMessage.addListener((message: RecorderMessage, sender, respond)
       case 'REPLAY_STOP':
         await stopReplay();
         return replayStatus();
+      case 'END_MEETING': {
+        const current = engine.captureState();
+        if (message.sessionId && current.session?.id !== message.sessionId && replayRun?.sessionId !== message.sessionId) {
+          const existing = await endMeeting.get(message.sessionId);
+          if (existing || current.phase === 'recording' || replayActive()) return existing;
+          const retained = await audioDB.getSession(message.sessionId);
+          if (!retained?.exportKind) return undefined;
+          const settings = retained.endSettings ?? (await chrome.runtime.sendMessage({ target: 'worker', type: 'ASSISTANT_SETTINGS' }))?.value?.settings ?? endSettings;
+          await beginEndSession({ ...retained, endSettings: settings }, 'interrupted');
+          if (retained.status === 'capturing')
+            await audioDB.updateSession(retained.id, { status: 'ready', partial: true, error: 'Recording was interrupted. The last audio may be missing.' });
+          await endMeeting.audioReady(retained.id);
+          const prepared = await chrome.runtime.sendMessage({ target: 'worker', type: 'END_CONNECTION', settings });
+          if (!prepared?.ok) throw new Error('The saved meeting connection could not be restored. Check AI settings and retry.');
+          const saved = await loadTranscript();
+          if (saved?.sessionId === retained.id)
+            await endMeeting.updateTranscript(recoveredEndTranscript(saved, retained.status === 'capturing'));
+          return endMeeting.get(retained.id);
+        }
+        if (replayActive()) {
+          await stopReplay();
+          return endMeeting.get(replayRun?.sessionId);
+        }
+        assistant.stopCapture();
+        stopAgentDiagnostics(assistantSessionId);
+        engine.stop();
+        const session = engine.captureState().session;
+        if (!session) return endMeeting.get(message.sessionId);
+        const job = await beginEndSession(session, 'manual');
+        await endMeeting.updateTranscript(await transcription.status());
+        return job;
+      }
+      case 'END_STATUS':
+        await endReady;
+        return endMeeting.get(message.sessionId);
+      case 'END_DESTINATION':
+      case 'END_SAVE':
+        await endReady;
+        await endMeeting.save(message.sessionId);
+        return endMeeting.get(message.sessionId);
+      case 'END_RETRY':
+        await endReady;
+        await endMeeting.updateTranscript(await transcription.status());
+        await endMeeting.retry(message.sessionId);
+        return endMeeting.get(message.sessionId);
+      case 'END_CONFIGURE':
+        endMeeting.configure(message.settings, message.apiKey ?? '');
+        return { configured: true };
+      case 'END_DISCARD':
+        await endReady;
+        await endMeeting.discard(message.sessionId);
+        return endMeeting.get(message.sessionId);
       case 'REPLAY_UI_EVENT':
         if (REPLAY_LAB && replayRun?.sessionId === message.sessionId)
           replayEvent(message.event.kind, {
@@ -526,6 +688,11 @@ chrome.runtime.onMessage.addListener((message: RecorderMessage, sender, respond)
           pendingTranscription: transcription.busy,
         });
         engine.stop();
+        const stopped = (await engine.status()).session;
+        if (stopped?.exportKind) {
+          await beginEndSession(stopped, 'manual');
+          await endMeeting.updateTranscript(await transcription.status());
+        }
         break;
       case 'STATUS':
         break;

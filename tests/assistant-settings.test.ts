@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
-import { assistantControl, initializeAssistant } from '../src/assistant/settings';
+import { assistantControl, initializeAssistant, initializeEndConnection } from '../src/assistant/settings';
 import { DEFAULT_SETTINGS } from '../src/assistant/types';
 let local: Record<string, unknown>,
   session: Record<string, unknown>,
@@ -38,6 +38,17 @@ beforeEach(() => {
 it('forces the recorder destination when forwarding a UI action', async () => {
   await assistantControl({ target: 'worker', type: 'ASSISTANT_STATUS' } as any);
   expect(send.mock.calls[0][0].target).toBe('recorder');
+});
+it('restores a saved meeting provider without replacing the current live connection settings', async () => {
+  const current={...DEFAULT_SETTINGS,provider:'deepinfra' as const,enabled:true};
+  local.assistantSettings=current;
+  local.assistantKey='saved-hpop-test-key';
+  await initializeEndConnection({...DEFAULT_SETTINGS,provider:'hpop',enabled:true});
+  expect(local.assistantSettings).toBe(current);
+  expect(send).toHaveBeenCalledWith(expect.objectContaining({
+    target:'recorder',type:'END_CONFIGURE',apiKey:'saved-hpop-test-key',settings:expect.objectContaining({provider:'hpop'}),
+  }));
+  expect(send.mock.calls.some(([message])=>message.type==='ASSISTANT_INIT')).toBe(false);
 });
 it('keeps keys in trusted local storage across reloads and out of returned settings', async () => {
   const r = await assistantControl({

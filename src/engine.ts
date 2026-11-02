@@ -12,6 +12,7 @@ import {
   type Phase,
 } from './types';
 import { WriteQueue } from './write-queue';
+import type { AssistantSettings } from './assistant/types';
 
 export class RecorderEngine {
   private phase: Phase = 'idle';
@@ -56,7 +57,17 @@ export class RecorderEngine {
   get busy(): boolean {
     return ['starting', 'recording', 'stopping', 'saving'].includes(this.phase);
   }
-  async start(streamId: string, tabId: number, title: string): Promise<void> {
+  /** Stop guards must not depend on IndexedDB being available. */
+  captureState(): Pick<Status, 'phase' | 'session'> {
+    return {
+      phase: this.phase,
+      session: this.current ? {
+        ...this.current,
+        durationMs: this.phase === 'recording' ? Date.now() - this.startedAt : this.current.durationMs,
+      } : undefined,
+    };
+  }
+  async start(streamId: string, tabId: number, title: string, settings?: AssistantSettings): Promise<void> {
     if (this.busy) throw new Error('A recording is already active.');
     if (!MediaRecorder.isTypeSupported(MIME))
       throw new Error('This Chrome version cannot record WebM/Opus audio. Update Chrome.');
@@ -113,6 +124,8 @@ export class RecorderEngine {
       this.mixed = destination.stream;
       const now = new Date();
       this.current = {
+        exportKind: 'meeting-bundle-v1',
+        ...(settings ? { endSettings: structuredClone(settings) } : {}),
         id: crypto.randomUUID(),
         createdAt: now.getTime(),
         filename: filename(now),
@@ -191,7 +204,9 @@ export class RecorderEngine {
         partial: !!this.stopReason || !!this.queue?.failure,
         error: this.stopReason ?? this.queue?.failure?.message,
       });
-      this.phase = 'saving';
+      // The durable end-session job owns bundle export. A missing folder must not
+      // keep the capture engine occupied after the final audio is committed.
+      this.phase = this.current.exportKind ? 'idle' : 'saving';
       this.changed();
       this.ready(session.id);
     } catch (error) {
@@ -207,6 +222,7 @@ export class RecorderEngine {
       throw new Error('Wait for the current download to finish.');
     const session = await db.getSession(id);
     if (!session) throw new Error('Recording no longer exists.');
+    if (session.exportKind) throw new Error('Use Save meeting to save this session’s audio and notes.');
     this.current = session;
     this.phase = 'saving';
     this.error = undefined;
@@ -278,6 +294,18 @@ export class RecorderEngine {
     const url = this.urls.get(id);
     if (url) URL.revokeObjectURL(url);
     this.urls.delete(id);
+    if (this.current?.id === id) {
+      this.current = undefined;
+      this.phase = 'idle';
+      this.error = undefined;
+    }
+    this.changed();
+  }
+  /** Called only after the bundle writer confirms all outputs, or explicit discard. */
+  async completeBundle(id: string): Promise<void> {
+    if (this.current?.id === id && ['starting', 'recording', 'stopping'].includes(this.phase))
+      throw new Error('Audio is still recording.');
+    await db.deleteSession(id);
     if (this.current?.id === id) {
       this.current = undefined;
       this.phase = 'idle';

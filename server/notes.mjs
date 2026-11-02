@@ -1,6 +1,8 @@
 import { once } from 'node:events';
 export const NOTES_MODEL = 'deepseek-ai/DeepSeek-V4.1-Flash-1017';
 export const NOTES_TIMEOUT_MS = 29_000;
+export const MOM_TIMEOUT_MS = 60_000;
+const MOM_SCHEMAS = ['meeting_minutes_extract_v1', 'meeting_minutes_compose_v1', 'meeting_minutes_review_v1'];
 const endpoint = 'https://api.deepinfra.com/v1/openai/chat/completions';
 function retryAfterSeconds(value) {
   if (!value) return;
@@ -46,12 +48,13 @@ export async function serveNotes(req, res, { apiKey, providerFetch, reply, cors,
     if (!input || typeof input !== 'object' || Array.isArray(input))
       return reply(400, { error: { message: 'Invalid notes request' } });
     const max = input.max_tokens ?? input.max_completion_tokens;
+    const mom = MOM_SCHEMAS.includes(input.response_format?.json_schema?.name);
     if (
       input.model !== NOTES_MODEL ||
       input.stream !== true ||
       !Number.isInteger(max) ||
       max < 1 ||
-      max > 1800 ||
+      max > (mom ? 3200 : 1800) ||
       !Array.isArray(input.messages) ||
       input.messages.length < 1 ||
       input.messages.length > 4 ||
@@ -70,6 +73,7 @@ export async function serveNotes(req, res, { apiKey, providerFetch, reply, cors,
             'live_memo_review_v1',
             'live_memo_proposal_v2',
             'live_memo_review_v2',
+            ...MOM_SCHEMAS,
           ].includes(input.response_format.json_schema?.name) ||
           typeof input.response_format.json_schema.schema !== 'object'))
     )
@@ -86,7 +90,7 @@ export async function serveNotes(req, res, { apiKey, providerFetch, reply, cors,
     timer = setTimeout(() => {
       timedOut = true;
       abort.abort();
-    }, NOTES_TIMEOUT_MS);
+    }, mom ? MOM_TIMEOUT_MS : NOTES_TIMEOUT_MS);
     const response = await providerFetch(endpoint, {
       method: 'POST',
       redirect: 'error',

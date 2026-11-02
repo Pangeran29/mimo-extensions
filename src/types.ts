@@ -1,6 +1,7 @@
 import type { DiagnosticConfig } from './diagnostics';
 import type { AssistantSettings, AssistantAction } from './assistant/types';
 import type { ReplayAction } from './replay/types';
+import type { EndAction, EndMeetingJob } from './end-meeting/types';
 export const AUDIO_SOURCES = ['mixed', 'microphone', 'tab'] as const;
 export type AudioSource = (typeof AUDIO_SOURCES)[number];
 export type Phase =
@@ -12,6 +13,8 @@ export type Phase =
   | 'save-failed'
   | 'error';
 export interface Session {
+  exportKind?: 'meeting-bundle-v1';
+  endSettings?: AssistantSettings;
   id: string;
   createdAt: number;
   sourceTitle: string;
@@ -29,6 +32,9 @@ export interface Session {
   downloadingSource?: AudioSource;
 }
 export interface Status {
+  endMeetingBusy?: boolean;
+  endMeeting?: EndMeetingJob;
+  endMeetingError?: string;
   replay?: { runId: string; sourceMs: number; phase: string };
   transcriptionBusy?: boolean;
   assistantBusy?: boolean;
@@ -38,6 +44,7 @@ export interface Status {
   retained: Session[];
 }
 export type UIMessage =
+  | ({ target: 'worker' } & EndAction)
   | ReplayAction
   | { target: 'worker'; type: 'STATUS' }
   | { target: 'worker'; type: 'TRANSCRIPT_STATUS' | 'PREPARE_TRANSCRIPTION' }
@@ -46,6 +53,8 @@ export type UIMessage =
   | { target: 'worker'; type: 'RETRY'; id: string }
   | { target: 'worker'; type: 'DISCARD'; id: string };
 export type RecorderMessage = { diagnostics?: DiagnosticConfig } & (
+  | ({ target: 'recorder' } & EndAction)
+  | { target: 'recorder'; type: 'END_CONFIGURE'; settings: AssistantSettings; apiKey?: string }
   | ({ target: 'recorder' } & AssistantAction)
   | {
       target: 'recorder';
@@ -85,6 +94,9 @@ export type RecorderMessage = { diagnostics?: DiagnosticConfig } & (
   | { target: 'recorder'; type: 'DISCARD'; id: string }
 );
 export type RecorderEvent =
+  | { target: 'worker'; type: 'END_CONNECTION'; settings: AssistantSettings }
+  | { target: 'worker'; type: 'END_SETTLED' }
+  | { target: 'worker'; type: 'END_STATE'; job: EndMeetingJob }
   | { target: 'worker'; type: 'AGENT_REPORT_EXPORT'; sessionId?: string; automatic?: boolean }
   | { target: 'worker'; type: 'TRANSCRIPTION_SETTLED' | 'ASSISTANT_SETTLED' }
   | { target: 'worker'; type: 'STATE'; status: Status }

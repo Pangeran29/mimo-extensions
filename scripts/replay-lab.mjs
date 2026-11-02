@@ -12,7 +12,7 @@ const buildDir = path.resolve(
   root,
   process.env.LISTEN_REPLAY_BUILD_DIR || 'artifacts/replay-lab/build',
 );
-const profile = path.resolve(root, '.local/replay-lab-profile');
+const profile = path.resolve(root, process.env.LISTEN_REPLAY_PROFILE_DIR || '.local/replay-lab-profile');
 const smoke = process.argv.includes('--smoke');
 if (buildDir === path.join(root, 'dist'))
   throw Error('Replay Lab requires a separate build directory.');

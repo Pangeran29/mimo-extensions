@@ -52,6 +52,13 @@
             </svg>
             <span>Settings</span>
           </button>
+          <button id="last-meeting" class="text-button idle-settings" type="button" hidden>
+            Open meeting notes
+          </button>
+          <details id="pending-meetings" class="end-other idle-pending" hidden>
+            <summary>Unsaved meetings</summary>
+            <ul id="pending-meetings-list"></ul>
+          </details>
         </div>
       </section>
       <div id="mimo-reading-surface" class="mimo-reading-surface" hidden>
@@ -113,6 +120,14 @@
             </button>
           </div>
           <div id="analysis-view" class="reading-view">
+            <section
+              id="end-meeting-panel"
+              class="result-panel end-meeting-panel"
+              role="region"
+              aria-label="Meeting notes"
+              tabindex="0"
+              hidden
+            ></section>
             <div
               id="analysis-panel"
               class="result-panel"

@@ -61,6 +61,32 @@ it('passes cancellation to the owning recorder for URL cleanup',async()=>{
   expect(send).toHaveBeenCalledWith(expect.objectContaining({type:'DOWNLOAD_DONE',id:session.id,cancelled:true,success:false}));
   expect(chrome.offscreen.closeDocument).toHaveBeenCalledTimes(1);
 });
+it('does not unload the offscreen document while post-meeting inference or export is busy',async()=>{
+  offscreen=true;items=[{id:42,state:'complete'}];
+  send.mockImplementation(async (msg:any)=>{
+    if(msg.type==='DOWNLOAD_DONE') await db.deleteSession(msg.id);
+    return {ok:true,value:{phase:'idle',retained:[],endMeetingBusy:true}};
+  });
+  await status();
+  expect(chrome.offscreen.closeDocument).not.toHaveBeenCalled();
+});
+it('reads meeting status without contacting or starting an offscreen recorder',async()=>{
+  offscreen=true;
+  send.mockClear();
+  const response=await new Promise<any>(resolve=>message({target:'worker',type:'END_STATUS'},{id:'test'},resolve));
+  expect(response.ok).toBe(true);
+  expect(send.mock.calls.some(([msg])=>msg.target==='recorder')).toBe(false);
+});
+it('routes end-meeting mutations to the recorder even when the UI message carries target worker',async()=>{
+  offscreen=true;
+  send.mockImplementation(async()=>({ok:true,value:undefined}));
+  for(const type of ['END_MEETING','END_DESTINATION','END_SAVE','END_DISCARD']) {
+    send.mockClear();
+    const response=await new Promise<any>(resolve=>message({target:'worker',type,sessionId:'ended-session'},{id:'test'},resolve));
+    expect(response.ok).toBe(true);
+    expect(send).toHaveBeenCalledWith(expect.objectContaining({target:'recorder',type,sessionId:'ended-session'}));
+  }
+});
 it('handles file picker cancellation before Chrome returns a download ID',async()=>{
   await db.updateSession(session.id,{downloadId:undefined});
   offscreen=true;

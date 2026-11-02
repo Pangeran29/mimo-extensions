@@ -28,12 +28,21 @@ class MemoCharacter {
   private lastPresentation = '';
   private greetingCount = 0;
   private returnHandler?: () => void;
+  private ended = false;
+  private endProcessing = false;
+  private endFailed = false;
+  private endEmpty = false;
 
   constructor() {
     this.setCompanionVisible(false);
     if (!this.analysisPanel.hasAttribute('tabindex')) this.analysisPanel.tabIndex = -1;
     if (!this.contributionView.hasAttribute('tabindex')) this.contributionView.tabIndex = -1;
     this.button.onclick = () => {
+      if (this.ended && this.state.view === 'summary') {
+        this.react('greet');
+        this.say(this.endCue());
+        return;
+      }
       if (this.state.view !== 'summary' || !this.state.visible) {
         this.returnHandler?.();
         return;
@@ -133,6 +142,18 @@ class MemoCharacter {
     this.currentActivity = activity;
     this.updatePose();
     if (changed && activity === 'reassure' && this.state.visible) this.react('reassure');
+  }
+
+  endMeeting(active: boolean, processing = false, failed = false, empty = false): void {
+    if (this.ended === active && this.endProcessing === processing && this.endFailed === failed && this.endEmpty === empty) return;
+    const finished = this.ended && this.endProcessing && active && !processing && !failed && !empty;
+    this.ended = active;
+    this.endProcessing = processing;
+    this.endFailed = failed;
+    this.endEmpty = empty;
+    if (active) this.state.stop();
+    this.reflect('end_meeting');
+    if (finished) this.react('useful');
   }
 
   recording(phase: Phase): void {
@@ -262,7 +283,9 @@ class MemoCharacter {
 
   private updateCue(): void {
     this.say(
-      this.state.view !== 'summary' || !this.state.visible
+      this.ended
+        ? this.endCue()
+        : this.state.view !== 'summary' || !this.state.visible
         ? 'Tap Mimo to return to your reading.'
         : this.state.pendingId
           ? 'A new thought is ready.'
@@ -276,9 +299,21 @@ class MemoCharacter {
     );
   }
 
+  private endCue(): string {
+    if (this.endFailed) return 'Your meeting notes need another try.';
+    if (this.endEmpty) return 'There wasn’t enough conversation for meeting notes.';
+    return this.endProcessing ? 'Putting your meeting notes together.' : 'Your meeting notes are here.';
+  }
+
   private updatePose(): void {
     const pose: MimoPose =
-      this.phase === 'error' || (this.phase === 'recording' && this.currentActivity === 'reassure')
+      this.ended
+        ? this.endFailed
+          ? 'reassure'
+          : this.endProcessing
+            ? 'thinking'
+            : 'rest'
+        : this.phase === 'error' || (this.phase === 'recording' && this.currentActivity === 'reassure')
         ? 'reassure'
         : this.state.mode === 'contribution'
           ? 'insight'
@@ -298,6 +333,7 @@ class MemoCharacter {
     const wasOpen = !this.contributionView.hidden;
     const display = this.state.displayedId ? this.nodes.get(this.state.displayedId) : undefined;
     const show =
+      !this.ended &&
       this.state.visible &&
       this.state.view === 'summary' &&
       this.state.mode === 'contribution' &&
@@ -315,12 +351,14 @@ class MemoCharacter {
     document.body.dataset.mimoView = show ? 'contribution' : 'understanding';
     this.root.dataset.mode = show ? 'contribution' : 'understanding';
     this.root.dataset.pending = String(!!this.state.pendingId);
-    this.button.dataset.hasContribution = String(!!this.state.latestId);
+    this.button.dataset.hasContribution = String(!this.ended && !!this.state.latestId);
     this.button.dataset.hasPendingContribution = String(!!this.state.pendingId);
     this.button.setAttribute('aria-expanded', String(show));
     this.button.setAttribute(
       'aria-label',
-      this.state.view !== 'summary' || !this.state.visible
+      this.ended
+        ? 'Say hello to Mimo'
+        : this.state.view !== 'summary' || !this.state.visible
         ? 'Mimo: return to your reading'
         : show
           ? 'Mimo: return to current understanding'

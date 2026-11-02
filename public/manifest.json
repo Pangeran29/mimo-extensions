@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Mimo \u2014 Live Audio Companion",
   "description": "Meet Mimo: follow the current conversation, explore useful contributions, and record tab and microphone audio.",
-  "version": "0.12.2",
+  "version": "0.13.0",
   "minimum_chrome_version": "116",
   "permissions": ["activeTab", "tabCapture", "offscreen", "downloads", "storage", "sidePanel"],
   "action": {

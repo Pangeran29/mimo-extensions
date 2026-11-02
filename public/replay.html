@@ -42,6 +42,10 @@
           Start sends audio windows and conversation context to your configured ASR and AI services.
           Provider charges may apply.
         </p>
+        <button id="choose-output-folder" type="button">Choose output folder</button>
+        <p id="output-folder" class="output-folder">
+          Choose a folder to save audio, transcript, and meeting notes when playback ends.
+        </p>
         <div class="run-controls">
           <button id="start-replay" class="primary" disabled>Start replay</button
           ><button id="stop-replay" disabled>Stop</button
@@ -66,7 +70,7 @@
       </section>
       <section class="memo-panel" aria-labelledby="memo-heading">
         <div class="panel-heading">
-          <h2 id="memo-heading">Memo, live</h2>
+          <h2 id="memo-heading">Mimo preview</h2>
           <span>The extension’s actual interface</span>
         </div>
         <iframe
@@ -116,7 +120,7 @@
     </main>
     <footer class="lab-footer">
       <span id="build-info">Research build</span
-      ><span>Playback 1×. Repeat clears the conversation context. No automatic MOM.</span>
+      ><span>Playback 1×. Each completed run includes its own meeting notes.</span>
     </footer>
     <script type="module" src="replay-lab.js"></script>
   </body>

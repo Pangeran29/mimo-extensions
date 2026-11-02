@@ -55,6 +55,7 @@ export function createRelay({ apiKey, relayToken, providerFetch = fetch, allowed
           model: NOTES_MODEL,
           liveMemoProtocol: 1,
           supportedLiveMemoProtocols: [1, 2],
+          supportedEndMeetingProtocols: [1],
         },
       });
     if (req.url === '/v1/openai/chat/completions' && req.method === 'POST')

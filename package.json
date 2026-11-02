@@ -1,6 +1,6 @@
 {
   "name": "meeting-audio-recorder",
-  "version": "0.12.2",
+  "version": "0.13.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -15,7 +15,9 @@
     "test:live-memo-tools": "node --test scripts/live-memo-budget.check.mjs scripts/live-memo-report.check.mjs scripts/live-memo-v2-report.check.mjs scripts/live-memo-review-server.check.mjs",
     "review:v2": "node scripts/live-memo-review-server.mjs",
     "replay:lab": "node scripts/replay-lab.mjs",
-    "test:replay-lab": "node scripts/replay-lab-smoke.mjs"
+    "test:replay-lab": "node scripts/replay-lab-smoke.mjs",
+    "test:end-meeting": "node scripts/end-meeting-smoke.mjs",
+    "test:end-meeting:ui": "node scripts/end-meeting-ui-smoke.mjs"
   },
   "devDependencies": {
     "@types/chrome": "^0.0.287",

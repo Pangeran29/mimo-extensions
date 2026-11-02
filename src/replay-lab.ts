@@ -6,6 +6,7 @@ import { renderReplayReport, type ReplayEvidence } from './replay/report';
 import { replayEventDescriptor } from './replay/describe';
 import { assistantSurface, surfaceAtTime, surfaceKey } from './appearance';
 import { BUILD_ID } from './build-info';
+import { attachMeetingDirectory, chooseMeetingDirectory, endAndChooseFolder } from './end-meeting/ui';
 import { duration, errorText, type Reply } from './types';
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -28,6 +29,8 @@ let inspectGeneration = 0;
 let latestEvidence: ReplayEvidence | undefined;
 let followRunId: string | undefined;
 let displayedStatusError: string | undefined;
+let outputDirectory: FileSystemDirectoryHandle | undefined;
+let choosingDirectory = false;
 const rows = new Map<string, HTMLDetailsElement>();
 const labels: Record<string, string> = {
   idle: 'Ready',
@@ -69,6 +72,10 @@ function controls(): void {
   fileInput.disabled = active;
   sourceSelect.disabled = active;
   $<HTMLInputElement>('monitor-audio').disabled = active;
+  $<HTMLButtonElement>('choose-output-folder').disabled = choosingDirectory || pending || importing;
+  $('output-folder').textContent = outputDirectory
+    ? `Each replay saves its audio, transcript, and meeting notes in a new session folder inside ${outputDirectory.name}.`
+    : 'Optional: choose a folder now to save all three files automatically when playback ends. You can also save afterwards.';
   $('source-info').textContent = importing
     ? 'Checking and saving the recording locally…'
     : selectedSource()
@@ -92,11 +99,11 @@ function renderStatus(): void {
   }
   $('run-detail').textContent =
     status?.phase === 'draining'
-      ? 'The file has finished. Pending transcription and memo work can complete before the session closes.'
+      ? 'The file has finished. Mimo is completing the transcript, meeting notes, and selected exports.'
       : status?.phase === 'stopping'
-        ? 'Playback and live memo publication have stopped. Pending transcription is finishing or recovering; Repeat becomes available when it settles.'
+        ? 'Playback has stopped. Mimo is completing the played portion’s transcript and meeting notes.'
         : status?.phase === 'complete'
-          ? 'Accepted results are saved. Repeat starts a new session with the same recording and empty conversation memory.'
+          ? 'The end-of-meeting process has settled. Check Meeting notes for any save or retry action. Repeat starts a fresh session.'
           : status?.phase === 'playing'
             ? 'Original speed and silence are preserved. Memo only receives audio that has played.'
             : status?.phase === 'error'
@@ -159,7 +166,7 @@ async function inspect(): Promise<void> {
       'Live provider responses and latency can vary between runs. This is not a deterministic AI-quality test.',
       'Source position measures playback, not the age of evidence used in a model request. Transcript and context sources are recorded in the AI input.',
       'DOM updates and visibility are observations, not proof of browser paint. Full-content diagnostics may be incomplete if their storage limit is reached.',
-      'Manual Stop cancels live publication immediately. At natural EOF, pending pipeline work drains with a bounded deadline. No MOM is generated.',
+      'Stop and natural EOF close live publication, finish the final transcription, and prepare meeting notes through the same end-session pipeline. Manual Stop exports only the played audio. Folder cancellation retains the results for saving later.',
     ],
   };
   const warning = $('report-warning');
@@ -278,6 +285,8 @@ async function start(repeat = false): Promise<void> {
       monitor: $<HTMLInputElement>('monitor-audio').checked,
     });
     followRunId = status.run?.id;
+    if (outputDirectory && status.run?.sessionId)
+      await attachMeetingDirectory(status.run.sessionId, outputDirectory);
     sourceSelect.value = sourceId;
     renderStatus();
   } catch (e) {
@@ -313,14 +322,31 @@ fileInput.addEventListener(
 sourceSelect.addEventListener('change', controls);
 startButton.onclick = () => void start();
 repeatButton.onclick = () => void start(true);
+$('choose-output-folder').onclick = () => {
+  if (choosingDirectory || pending || importing) return;
+  const selecting = chooseMeetingDirectory();
+  choosingDirectory = true;
+  controls();
+  void selecting.then(async (directory) => {
+    if (!directory) return;
+    outputDirectory = directory;
+    if (status?.run && ['playing', 'draining', 'stopping'].includes(status.phase))
+      await attachMeetingDirectory(status.run.sessionId, directory);
+  }).catch(showError).finally(() => {
+    choosingDirectory = false;
+    controls();
+  });
+};
 stopButton.onclick = () =>
   void (async () => {
     if (pending || !status || !['playing', 'draining'].includes(status.phase)) return;
     pending = true;
+    const stopping = endAndChooseFolder(status.run?.sessionId, !outputDirectory);
     controls();
     showError();
     try {
-      status = await send<ReplayStatus>({ type: 'REPLAY_STOP' });
+      await stopping;
+      status = await send<ReplayStatus>({ type: 'REPLAY_STATUS' });
       renderStatus();
     } catch (e) {
       showError(e);

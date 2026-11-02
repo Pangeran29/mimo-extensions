@@ -463,6 +463,13 @@ iframe {
   color: var(--ink);
   font-size: 13px;
 }
+.output-folder {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 8px 0 16px;
+  overflow-wrap: anywhere;
+}
 .event-list .technical {
   border: 0;
   padding: 0 0 0 26px;

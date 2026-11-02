@@ -1,0 +1,75 @@
+# End meeting · 0.13.0 candidate
+
+The 2026-11-02 source candidate adds a post-meeting reader and a three-file meeting bundle. It supersedes the earlier rule that Stop only retained live understanding. It is separate from the installed 0.12.1 extension: candidate builds are under `artifacts/end-meeting-2026-11-02/build` and `artifacts/end-meeting-2026-11-02/replay-build`. Promotion, extension Reload, and the managed relay update remain pending. See the [implementation and evidence record](../artifacts/end-meeting-2026-11-02/IMPLEMENTATION.md).
+
+## Stop and read the result
+
+1. Press Stop in Live memo or **Stop & save** in the popup. The click dispatches Stop before opening Chrome's folder picker, in the same user gesture. Ending capture does not wait for folder selection or notes generation.
+2. Choose the parent folder for this meeting's files, or cancel. Cancellation retains the local session and leaves **Choose folder** available; it does not discard audio.
+3. Mimo finishes the final speech window and waits for a complete, ordered transcript. The reader says when transcription is still recovering. Incomplete transcripts do not produce final minutes.
+4. The separate end-meeting pipeline prepares concise factual bullets from the whole captured conversation, in its dominant language. **Meeting notes** replaces the live reading content. Sources open that result's own timestamped transcript; Back returns to the initiating Sources control.
+5. The save area reports Audio, Transcript, and Meeting notes separately. Audio and a complete transcript can save before the notes finish. All three must report saved before the local audio is released.
+
+The ordinary live proposal/reviewer chain stops publishing at Stop. Its accepted understanding and contributions remain separate saved state; they are not the input used as a substitute for the full transcript. New recording, session selection, and late old-session updates are fenced so an earlier result cannot replace a live session.
+
+## The three files
+
+Each chosen parent receives a new `Mimo-YYYY-MM-DD-HHMMSS-<session-prefix>` subfolder. The timestamp uses local time. Existing names receive a numeric suffix; another session's files are not deliberately reused. Retrying the same granted folder resumes its persisted bundle directory.
+
+| File | Contents |
+| --- | --- |
+| `audio-YYYY-MM-DD-HHMMSS-<session-prefix>.webm` | The combined tab and microphone stream, encoded as WebM/Opus. Replay exports the stream actually played. |
+| `transcript.txt` | The complete transcript with recording-relative `[HH:MM:SS–HH:MM:SS]` passage ranges. These are audio-window ranges, not word alignment or speaker labels. |
+| `mom.txt` | Plain text bullet minutes, or an explicit no-conversation/no-substantive-content result. |
+
+New meeting bundles export one combined audio file, not three separate audio downloads. The capture engine still encodes and temporarily stores its existing combined, microphone and tab streams; only combined audio is in the new bundle. Older retained recordings keep their legacy download/recovery path.
+
+Writes use File System Access handles stored in extension IndexedDB. Blob data streams to the writer without converting the whole recording to base64 or one ArrayBuffer. This does not establish constant browser memory during Blob assembly or export. Files already saved are skipped on retry. Permission loss, full destination, and other write failures keep the remaining work local and expose **Choose folder** or **Retry saving**. Choosing another folder before audio cleanup starts a fresh bundle there; it can leave previously written files in the earlier folder. Discard removes retained local data and does not remove files already written to disk.
+
+## How the minutes are checked
+
+`src/end-meeting/mom.ts` is independent of live-v2 memory. A short transcript is composed directly; a long one is split into bounded chronological parts, extracted into evidence-linked facts, and reduced when needed. Extraction coverage, intermediate ledgers, draft, review progress, and a SHA-256 transcript identity are checkpointed. A changed final transcript invalidates the old draft and associated text-export completion.
+
+The prompts distinguish proposals from explicit decisions, preserve corrections and unresolved issues, and forbid invented owners, deadlines, dates, recommendations, and general knowledge. Each claimed source ID must exist and have a matching exact quote. Duplicate normalized bullet text is rejected. A separate reviewer checks support, importance, dominant language, decisions/actions, corrections, and omissions before release. Batched review includes the complete compact bullet inventory for global checks and marks which bullets receive factual evidence in that batch, so omitted evidence for other batches is not treated as an omitted meeting point. Empty transcripts return an explicit empty result without a model request.
+
+These checks establish structure, coverage and quote matching. They do not prove semantic truth, complete topic coverage, correct ASR wording, or the quality of a real provider result. Dominant language is requested and reviewed by the model rather than certified by a separate language detector. Important names, numbers, decisions and actions still require review against the audio.
+
+The selected session provider/model/objective are retained with the job; credentials are not. HPOP uses its existing connection, including the native Claude forced-tool transport. Managed DeepInfra uses the loopback relay and checks `notes.supportedEndMeetingProtocols` for protocol `1` before inference. An older relay gives an actionable update error. The relay must be updated while sessions are idle before a real managed-provider MoM test. This work does not authorize restarting a relay during a recording.
+
+Requests have a 65-second client bound and bounded transport retries with Retry-After/backoff. Explicit retry resumes valid checkpoints rather than assuming a failed stage completed. Opening or restoring the reader alone starts neither model requests nor destination writes. An interrupted notes request or file write becomes an explicit retry state. ASR keeps its existing durable outbox and recovery policy.
+
+## Local retention
+
+The production store (`mimo-end-meeting-v1`) retains the latest fully completed reader plus unfinished jobs. A job is eligible for completed-history pruning only after notes reach ready/empty, every file is saved, and audio cleanup succeeds. If all three files are confirmed saved but local audio deletion fails, the reader keeps an explicit cleanup message and Retry saving. Restore can retry that local database cleanup within a bounded attempt count without a provider request or filesystem write; an explicit cleanup retry does not require renewed folder permission. Unsaved or failed jobs remain available through **Other unsaved meetings** and the idle pending-results controls. This is local recovery, not a durable cloud archive; clearing extension/profile data removes it. The latest transcript and live assistant storage retain their existing separate behavior.
+
+Replay Lab archives its run evidence separately. Its earlier runs are not governed by production's latest-completed-reader pruning.
+
+## Replay Lab
+
+Natural EOF and manual Stop enter the same end-meeting controller. Both stop live publication and flush the final speech window; EOF no longer waits to publish a final live memo. The lab records the played Web Audio stream with a separate native MediaRecorder. Manual Stop exports only the played prefix and marks the run partial; EOF exports the played recording. Source errors and interrupted runs retain explicit partial evidence.
+
+Run finalization waits for transcription and end-meeting processing to settle, and the run stores its final end-meeting snapshot. A terminal failed/incomplete transcript can settle as partial evidence; it is not treated as a complete transcript suitable for minutes. Repeat uses a fresh session and does not turn older end results back into live context. Folder choice is separate from research run completion: an unsaved result can remain pending after the run settles.
+
+Open only the isolated candidate when reviewing this feature:
+
+```sh
+LISTEN_REPLAY_BUILD_DIR=artifacts/end-meeting-2026-11-02/replay-build \
+LISTEN_REPLAY_PROFILE_DIR=.local/end-meeting-beta-profile \
+pnpm replay:lab --no-build
+```
+
+Opening the launcher does not autoplay or start provider inference. Explicit Start on speech uses the configured ASR/AI services. See [Replay Lab](REPLAY-LAB.md) for the ordinary research workflow and evidence boundaries.
+
+## Native picker check still required
+
+The saved Chrome context probe establishes that both extension-page and localhost trusted clicks can invoke a pending native picker. It does not establish a selected OS folder, write consent, native popup/sidebar completion, or restored permission after restart. The deterministic export integration substitutes OPFS for selection: its handle and writer are real browser File System Access objects, but it is not native OS picker proof. See [File System Access evidence boundaries](../artifacts/end-meeting-2026-11-02/FSA-EVIDENCE.md).
+
+Use a disposable candidate profile and a locally prepared silent audio file for a manual check without paid ASR/AI inference. Keep the existing profiles and any active recording untouched.
+
+1. Open the isolated candidate Replay Lab above, choose the silent file, and start it. Silence should yield no speech windows or live model work. At EOF the empty result requires no MoM request.
+2. Use **Choose folder**, select a new temporary OS folder, and grant Chrome's write consent if shown. Confirm a unique session subfolder contains exactly the combined WebM, `transcript.txt`, and `mom.txt`; play the WebM and inspect the text files.
+3. In another silent run, press Stop before EOF. Cancel the native picker and confirm playback has stopped, the result remains available, and Choose folder can complete later. Check focus after the dialog closes and that Tab reaches a visible control.
+4. Repeat the picker check through the actual assistant Stop and popup Stop/save in an isolated normal-build test profile with a controlled silent capture fixture. Use a local stub relay or enforce blocked external inference when exercising physical capture, since microphone noise can create speech windows.
+5. Restart only the disposable browser. Inspect the retained result without automatic requests/writes. If Chrome has revoked access, choose the same folder again and confirm the original bundle resumes without an extra session folder. A read-only destination or full disk must retain failed files with a retry action.
+
+Those manual results should be saved separately from the automated OPFS result. No full live-provider MoM quality, real-meeting language/decision accuracy, or activation claim follows from silent or fixed-response validation.

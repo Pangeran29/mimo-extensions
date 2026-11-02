@@ -19,6 +19,7 @@ export interface ReplaySource {
   createdAt: number;
 }
 export interface ReplayRun {
+  endMeeting?: import('../end-meeting/types').EndMeetingJob;
   id: string;
   sourceId: string;
   sessionId: string;
@@ -49,6 +50,7 @@ export interface ReplayEvent {
   data: unknown;
 }
 export interface ReplayStatus {
+  endMeetingBusy?: boolean;
   enabled: boolean;
   phase: ReplayPhase;
   run?: ReplayRun;
