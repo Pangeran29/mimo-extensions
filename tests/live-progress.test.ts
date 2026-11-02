@@ -1,0 +1,31 @@
+import { afterEach, expect, it, vi } from 'vitest';
+import { LiveStageTimer, requestProgressText } from '../src/live-progress';
+afterEach(() => vi.restoreAllMocks());
+it('times one attempt monotonically, freezes completion, resets and cancels without history', () => {
+  let now = 100;
+  vi.spyOn(performance, 'now').mockImplementation(() => now);
+  const timer = new LiveStageTimer();
+  expect(timer.read()).toEqual({ state: 'idle', elapsedMs: 0 });
+  timer.start();
+  now = 1500;
+  expect(timer.read()).toEqual({ state: 'running', elapsedMs: 1400 });
+  timer.finish('done');
+  now = 7000;
+  expect(timer.read()).toEqual({ state: 'done', elapsedMs: 1400 });
+  timer.start();
+  now = 7200;
+  timer.finish('failed');
+  expect(timer.read()).toEqual({ state: 'failed', elapsedMs: 200 });
+  timer.start();
+  now = 7300;
+  timer.finish('cancelled');
+  expect(timer.read()).toEqual({ state: 'cancelled', elapsedMs: 100 });
+  timer.reset();
+  expect(timer.read()).toEqual({ state: 'idle', elapsedMs: 0 });
+});
+it('distinguishes request time, retry wait, failed attempts and last completion', () => {
+  expect(requestProgressText({ state: 'running', elapsedMs: 5370 }, 2000)).toBe('5.4s · working');
+  expect(requestProgressText({ state: 'failed', elapsedMs: 5370 }, 2100)).toBe('Retry in 3s');
+  expect(requestProgressText({ state: 'done', elapsedMs: 5370 })).toBe('5.4s · last');
+  expect(requestProgressText({ state: 'failed', elapsedMs: 5370 })).toBe('5.4s · failed');
+});

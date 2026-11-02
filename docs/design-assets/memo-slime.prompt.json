@@ -1,0 +1,12 @@
+{
+  "asset": "memo-slime.png",
+  "method": "Built-in image_gen.imagegen tool",
+  "use_case": "stylized-concept",
+  "transparent_background": true,
+  "width": 1254,
+  "height": 1254,
+  "color_mode": "RGBA",
+  "alpha_range": [0, 255],
+  "prompt": "Use case: stylized-concept\nAsset type: production mascot PNG for a Chrome audio companion, displayed at 72–96 pixels.\nScene/backdrop: genuinely transparent RGBA background, isolated subject with no scenery or platform.\nPrimary request: create one original endearing amorphous jelly/slime character named Memo (do not render the name or any text).\nSubject: a soft asymmetrical seafoam mint body, a broad gently grounded lower silhouette with subtle soft lobes, dark ink expressive oval eyes and a tiny friendly thoughtful smile. One gentle bookmark-like tuft or folded peak grows organically from the top of its jelly body, suggesting memory. No arms, legs, clothing, or accessories. Friendly thoughtful grown-up desktop companion.\nStyle/medium: simple clean tactile 2.5D character illustration; softly rounded jelly volume, restrained smooth highlights, subtle lavender edge shading, crisp readable silhouette and facial features at small size.\nComposition/framing: single canonical character, full body, centered, front-facing with very slight natural asymmetry, plenty of transparent breathing room around all sides; body occupies approximately 75 percent of the square frame width.\nLighting/mood: calm, attentive, approachable, gentle soft studio highlights attached only to the character.\nColor palette: dominant mint/seafoam #9ae6be, subtle lavender edge, dark ink face; clear against saturated violet, light periwinkle and midnight UI surfaces.\nConstraints: actual transparent alpha outside the character; no background, no rectangular backdrop, no ground plane, no cast shadow detached from the body, no extra characters, no props, no text, no watermark, no UI mockup, no sprite sheet. Keep the design simple enough for CSS squash/stretch animation.",
+  "original_output": "/Users/Apple/.codex/generated_images/01a18c78-c056-7742-936c-02e2eb6665db/exec-ca2a936c-ef36-496e-8ca9-75814d81d6e3.png"
+}

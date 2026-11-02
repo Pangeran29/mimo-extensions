@@ -1,0 +1,442 @@
+:root {
+  font:
+    400 14px/1.5 -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
+  color-scheme: light;
+  --surface: #f5f6fc;
+  --panel: #fff;
+  --soft: #edf0ff;
+  --ink: #252b45;
+  --muted: #65708a;
+  --line: #dce1ef;
+  --accent: #3859cb;
+  --action-ink: #fff;
+  --danger: #aa344e;
+  --warning: #81561f;
+  --selection: #dce4ff;
+  --live-field: #4643ce;
+  --live-ink: #fff;
+  --live-muted: #e1e0ff;
+  --live-action: #f0efff;
+}
+:root:has([data-surface='Midnight']) {
+  color-scheme: dark;
+  --surface: #151925;
+  --panel: #1d2436;
+  --soft: #2a355a;
+  --ink: #eff1fa;
+  --muted: #aab4ce;
+  --line: #343e57;
+  --accent: #a8b8ff;
+  --action-ink: #151925;
+  --danger: #ff9ab0;
+  --warning: #e9c88e;
+  --selection: #344572;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  width: 320px;
+  min-width: 320px;
+  margin: 0;
+  background: var(--surface);
+  color: var(--ink);
+}
+[hidden] {
+  display: none !important;
+}
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+button:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+p {
+  margin: 0;
+}
+svg {
+  width: 19px;
+  height: 19px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex-shrink: 0;
+}
+::selection {
+  background: var(--selection);
+  color: var(--ink);
+}
+html {
+  scrollbar-color: var(--line) var(--surface);
+  scrollbar-width: thin;
+}
+.popup-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 20px 22px 0;
+  min-height: 52px;
+}
+.wordmark {
+  display: inline-flex;
+  gap: 7px;
+  align-items: center;
+  font-size: 16px;
+  font-weight: 650;
+  letter-spacing: -0.025em;
+  line-height: 24px;
+}
+.capture-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 3px 6px;
+  max-width: 158px;
+  min-height: 24px;
+  font-size: 11px;
+  line-height: 1.7;
+  text-align: end;
+  color: var(--muted);
+}
+#state {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+#timer {
+  width: 100%;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  font-size: 12px;
+}
+.status-signal {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--muted);
+}
+.status-signal.active {
+  background: var(--accent);
+}
+.listen-control {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  min-height: 360px;
+  padding: 22px 20px;
+  margin: 14px 12px 18px;
+  border-radius: 16px;
+  background: var(--live-field);
+  color: var(--live-ink);
+}
+.idle-intro {
+  max-width: 230px;
+  font-size: 25px;
+  font-weight: 600;
+  line-height: 1.22;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+  margin: 0 0 6px;
+}
+.memo-welcome {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.memo-greeting {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  --mimo-size: 136px;
+  width: 136px;
+  height: 136px;
+  padding: 0;
+  border: 0;
+  border-radius: 16px;
+  background: transparent;
+  transform-origin: 50% 85%;
+}
+.memo-greeting .mimo-portrait {
+  width: 100%;
+  height: 100%;
+}
+.listen-control :is(.memo-greeting, .listen-button, .primary):focus-visible {
+  outline-color: var(--live-ink);
+}
+.memo-character {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+.memo-message {
+  max-width: 220px;
+  min-height: 19px;
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--live-muted);
+  line-height: 1.6;
+}
+.listen-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 46px;
+  margin: 0 0 16px;
+  padding: 12px 16px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--live-action);
+  color: var(--live-field);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.25;
+  text-wrap: balance;
+  transition:
+    background-color 160ms ease-out,
+    transform 160ms ease-out;
+}
+.listen-button:hover:enabled {
+  transform: translateY(-2px);
+}
+.listen-button:active:enabled {
+  transform: scale(0.97);
+}
+.listen-button:disabled {
+  background: var(--live-action);
+  color: var(--live-field);
+  opacity: 0.6;
+}
+.listen-symbol {
+  width: 18px;
+  height: 18px;
+  stroke-width: 1.8;
+}
+.source-name {
+  margin: 0 0 5px;
+  font-size: 13px;
+  line-height: 1.5;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.capture-hint {
+  font-size: 12px;
+  color: var(--live-muted);
+  line-height: 1.6;
+}
+.primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 11px 16px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--live-action);
+  color: var(--live-field);
+  font-size: 13px;
+  font-weight: 600;
+}
+.primary:hover:enabled {
+  filter: brightness(1.08);
+}
+.primary:active:enabled {
+  filter: brightness(0.95);
+}
+.live-guidance {
+  display: none;
+}
+body:is([data-phase='recording'], [data-phase='stopping'], [data-phase='saving']) .listen-control {
+  min-height: 276px;
+  padding: 22px 20px 28px;
+  text-align: start;
+  align-items: flex-start;
+  justify-content: center;
+}
+body:is([data-phase='recording'], [data-phase='stopping'], [data-phase='saving']) .idle-intro {
+  display: none;
+}
+body:is([data-phase='recording'], [data-phase='stopping'], [data-phase='saving']) .memo-welcome {
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+body:is([data-phase='recording'], [data-phase='stopping'], [data-phase='saving']) .memo-greeting {
+  --mimo-size: 96px;
+  width: 96px;
+  height: 96px;
+  margin-inline-start: -6px;
+}
+body:is([data-phase='recording'], [data-phase='stopping'], [data-phase='saving']) .memo-message {
+  text-align: start;
+  margin-top: 4px;
+}
+body:is([data-phase='recording'], [data-phase='stopping'], [data-phase='saving']) .source-name {
+  font-size: 25px;
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  line-height: 1.25;
+  margin-bottom: 9px;
+  text-wrap: balance;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+}
+body[data-phase='recording'] .live-guidance {
+  display: block;
+  max-width: 235px;
+  margin-top: 14px;
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--live-muted);
+}
+#open-assistant {
+  margin-top: 24px;
+}
+.popup-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  min-height: 62px;
+  background: var(--panel);
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+}
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-width: 40px;
+  min-height: 40px;
+  padding: 9px 8px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+}
+.icon-button:hover:enabled {
+  background: var(--soft);
+  color: var(--ink);
+}
+.icon-button:active:enabled {
+  background: var(--selection);
+}
+.icon-button circle {
+  fill: var(--panel);
+}
+.stop-button {
+  color: var(--danger);
+}
+.stop-button svg {
+  width: 17px;
+  height: 17px;
+}
+.stop-button svg rect {
+  fill: currentColor;
+  stroke: none;
+}
+.stop-button:hover:enabled {
+  color: var(--danger);
+}
+.popup-error {
+  margin: 0 24px 22px;
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--danger);
+  overflow-wrap: anywhere;
+}
+.popup-recovery {
+  margin: 0 24px 22px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+h2 {
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0 0 8px;
+}
+.retained-item {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+.retained-item p {
+  font-size: 12px;
+  line-height: 1.6;
+  margin: 4px 0;
+  overflow-wrap: anywhere;
+}
+.retained-item .actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-top: 6px;
+}
+.text-button {
+  padding: 6px 0;
+  min-height: 36px;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  font-size: 12px;
+}
+.text-button:hover:enabled {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.discard {
+  color: var(--danger);
+}
+.listen-control button:focus-visible {
+  outline-color: var(--live-ink);
+}
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+@media (pointer: coarse) {
+  button {
+    min-height: 44px;
+  }
+}
+@media (forced-colors: active) {
+  .listen-button,
+  .primary,
+  .stop-button {
+    border: 1px solid ButtonText;
+  }
+  .status-signal {
+    background: CanvasText;
+  }
+}

@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Listen · Meeting reference review</title>
+    <style>
+      :root {
+        font-family: Arial, sans-serif;
+        color: #15304c;
+        background: #f1f6fb;
+        font-size: 16px;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+      }
+      header,
+      main,
+      footer {
+        max-width: 1100px;
+        margin: auto;
+        padding: 24px;
+      }
+      header {
+        padding-bottom: 12px;
+      }
+      h1 {
+        font-size: 28px;
+        letter-spacing: -0.6px;
+        margin: 0 0 10px;
+      }
+      p {
+        line-height: 1.55;
+        max-width: 76ch;
+        color: #455c73;
+      }
+      nav {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin: 20px 0;
+      }
+      button,
+      select,
+      textarea {
+        font: inherit;
+      }
+      button {
+        cursor: pointer;
+        border: 1px solid #a9bdd2;
+        border-radius: 6px;
+        background: white;
+        color: #15304c;
+        padding: 10px 15px;
+      }
+      button:disabled {
+        opacity: 0.45;
+        cursor: default;
+      }
+      button[aria-current='true'],
+      .primary {
+        background: #2157b2;
+        color: white;
+        border-color: #2157b2;
+      }
+      button:focus-visible,
+      textarea:focus-visible,
+      select:focus-visible {
+        outline: 3px solid #81abef;
+        outline-offset: 3px;
+      }
+      main {
+        padding-top: 0;
+        padding-bottom: 100px;
+      }
+      .instructions {
+        margin-bottom: 20px;
+      }
+      .track {
+        display: grid;
+        grid-template-columns: 230px 1fr;
+        gap: 24px;
+        background: white;
+        border-top: 1px solid #cbd7e5;
+        padding: 24px;
+      }
+      .track:first-of-type {
+        border-radius: 8px 8px 0 0;
+      }
+      .track:last-of-type {
+        border-bottom: 1px solid #cbd7e5;
+        border-radius: 0 0 8px 8px;
+      }
+      .track h3 {
+        font-size: 18px;
+        margin: 0 0 12px;
+      }
+      audio {
+        width: 100%;
+        height: 40px;
+      }
+      .field label {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 8px;
+      }
+      textarea {
+        resize: vertical;
+        min-height: 110px;
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #a9bdd2;
+        border-radius: 5px;
+        line-height: 1.6;
+        color: #15304c;
+      }
+      .controls {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-top: 12px;
+      }
+      select {
+        padding: 9px;
+        border: 1px solid #a9bdd2;
+        border-radius: 5px;
+        max-width: 100%;
+        background: white;
+      }
+      .hint {
+        font-size: 14px;
+        margin: 12px 0 0;
+      }
+      .draft {
+        padding: 14px;
+        background: #eff4fa;
+        font-size: 15px;
+        line-height: 1.6;
+        margin-top: 12px;
+      }
+      .draft strong {
+        display: block;
+        margin-bottom: 5px;
+      }
+      footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        max-width: none;
+        background: #fff;
+        border-top: 1px solid #cbd7e5;
+        padding: 16px 24px;
+      }
+      .footer-inner {
+        max-width: 1052px;
+        margin: auto;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      #save-status {
+        font-size: 14px;
+        margin-left: auto;
+      }
+      h2 {
+        font-size: 21px;
+        margin: 0 0 8px;
+      }
+      #progress {
+        font-weight: bold;
+        margin: 0;
+      }
+      #issue {
+        color: #9d2424;
+      }
+      @media (max-width: 700px) {
+        header,
+        main {
+          padding: 18px;
+        }
+        .track {
+          grid-template-columns: 1fr;
+          gap: 16px;
+          padding: 20px;
+        }
+        h1 {
+          font-size: 25px;
+        }
+        #save-status {
+          margin-left: 0;
+          flex-basis: 100%;
+        }
+        main {
+          padding-bottom: 160px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Verify the meeting excerpts</h1>
+      <p>
+        Listen first, then write what was said. Keep repetitions and corrections. Use
+        <strong>[unclear]</strong> for words you cannot make out, and choose “Needs another listen.”
+        All audio and saved text stay on this computer.
+      </p>
+      <nav aria-label="Meeting excerpts" id="timeline"></nav>
+    </header>
+    <main>
+      <div class="instructions">
+        <h2 id="period"></h2>
+        <p id="progress"></p>
+        <p class="hint">
+          Source names identify the recording track. They do not identify every speaker. Reveal the
+          machine draft only after writing your first version.
+        </p>
+      </div>
+      <div id="tracks"></div>
+      <p id="issue" role="alert"></p>
+    </main>
+    <footer>
+      <div class="footer-inner">
+        <button id="previous">Previous excerpt</button><button id="next">Next excerpt</button
+        ><button class="primary" id="save">Save review</button
+        ><span id="save-status" role="status">No changes saved yet.</span>
+      </div>
+    </footer>
+    <script>
+            const data=/*REVIEW_DATA*/;
+            const storageKey='listen-reference-'+data.pilotHash;
+            const blank=data.rows.map(r=>({id:r.id,inputHash:r.inputHash,status:'pending',text:'',draftRevealed:false,textBeforeReveal:null}));
+            let annotations=data.previous?.annotations||blank;
+            try{const cached=JSON.parse(localStorage.getItem(storageKey));if(cached?.pilotHash===data.pilotHash&&Array.isArray(cached.annotations)&&cached.annotations.length===blank.length)annotations=cached.annotations;}catch{}
+            let current=0,dirty=JSON.stringify(annotations)!==JSON.stringify(data.previous?.annotations||blank);
+            const times=[...new Set(data.rows.map(r=>r.start))].sort((a,b)=>a-b);
+            const names={tab:'Incoming audio',microphone:'Microphone',combined:'Combined audio'};
+            const el=id=>document.getElementById(id);
+      el('save-status').textContent=dirty?'Restored unsaved changes':data.previous?'Loaded saved review':'No changes saved yet.';
+            const clock=t=>Math.floor(t/60)+':'+String(t%60).padStart(2,'0');
+            function pendingSave(){dirty=true;el('save-status').textContent='Unsaved changes';try{localStorage.setItem(storageKey,JSON.stringify({pilotHash:data.pilotHash,annotations}));}catch{}updateProgress();}
+            function updateProgress(){const count=annotations.filter(a=>['speech','no-speech'].includes(a.status)).length;el('progress').textContent=count+' of '+data.rows.length+' tracks marked reviewed';}
+            function render(){
+              document.querySelectorAll('audio').forEach(a=>a.pause());
+              el('timeline').replaceChildren();el('tracks').replaceChildren();
+              times.forEach((t,i)=>{const b=document.createElement('button');b.textContent=clock(t);b.setAttribute('aria-current',String(i===current));b.onclick=()=>{current=i;render();};el('timeline').append(b);});
+              const start=times[current];el('period').textContent=clock(start)+'–'+clock(start+8);
+              for(const role of ['tab','microphone','combined']){
+                const row=data.rows.find(r=>r.start===start&&r.role===role),a=annotations.find(a=>a.id===row.id);
+                const section=document.createElement('section');section.className='track';
+                const source=document.createElement('div'),heading=document.createElement('h3');heading.textContent=names[role];
+                const audio=document.createElement('audio');audio.controls=true;audio.preload='none';audio.src='./audio/'+row.index;audio.setAttribute('aria-label',names[role]+' at '+clock(start));
+                audio.onplay=()=>document.querySelectorAll('audio').forEach(other=>{if(other!==audio)other.pause();});
+                source.append(heading,audio);
+                const field=document.createElement('div');field.className='field';
+                const label=document.createElement('label');label.textContent='What you hear';label.htmlFor='text-'+row.index;
+                const text=document.createElement('textarea');text.id=label.htmlFor;text.value=a.text;text.spellcheck=false;text.placeholder='Write the exact words, or mark no intelligible speech below.';text.disabled=a.status==='no-speech';
+                const controls=document.createElement('div');controls.className='controls';
+                const status=document.createElement('select');status.setAttribute('aria-label',names[role]+' review status');
+                for(const [value,name]of [['pending','Not reviewed'],['speech','Transcribed and checked'],['no-speech','No intelligible speech'],['uncertain','Needs another listen']]){const o=document.createElement('option');o.value=value;o.textContent=name;status.append(o);}status.value=a.status;
+                const reveal=document.createElement('button');reveal.textContent='Reveal machine draft';
+                const draft=document.createElement('div');draft.className='draft';draft.hidden=!a.draftRevealed;
+                const draftLabel=document.createElement('strong');draftLabel.textContent='Unverified machine draft';const draftText=document.createElement('span');draftText.textContent=row.draft||'(empty)';draft.append(draftLabel,draftText);
+                const updateReveal=()=>{reveal.disabled=a.draftRevealed||(!a.text.trim()&&a.status!=='no-speech');};
+                text.oninput=()=>{a.text=text.value;if(a.status==='speech'){a.status='pending';status.value='pending';}pendingSave();updateReveal();};
+                status.onchange=()=>{if(status.value==='speech'&&/\[\s*(unclear|inaudible|overlapping speech)\s*\]/i.test(a.text)){status.value=a.status;el('issue').textContent='Choose Needs another listen when words are unclear.';return;}if(status.value==='speech'&&!a.text.trim()){status.value=a.status;el('issue').textContent='Write the words before marking this track checked.';return;}if(status.value==='no-speech'&&a.text.trim()){status.value=a.status;el('issue').textContent='Clear the transcript before marking no intelligible speech.';return;}el('issue').textContent='';a.status=status.value;text.disabled=a.status==='no-speech';pendingSave();updateReveal();};
+                reveal.onclick=()=>{a.textBeforeReveal=a.text;a.draftRevealed=true;draft.hidden=false;pendingSave();updateReveal();};
+                updateReveal();controls.append(status,reveal);field.append(label,text,controls,draft);section.append(source,field);el('tracks').append(section);
+              }
+              el('previous').disabled=current===0;el('next').disabled=current===times.length-1;updateProgress();
+            }
+            el('previous').onclick=()=>{current--;render();};el('next').onclick=()=>{current++;render();};
+            el('save').onclick=async()=>{el('save').disabled=true;try{const response=await fetch('./save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pilotHash:data.pilotHash,annotations})});const reply=await response.json();if(!response.ok||!reply.ok)throw Error();dirty=false;el('save-status').textContent='Saved locally · '+reply.reviewed+' tracks reviewed';}catch{el('save-status').textContent='Save failed. Keep this page open and retry.';}finally{el('save').disabled=false;}};
+            window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue='';}});
+            render();
+    </script>
+  </body>
+</html>

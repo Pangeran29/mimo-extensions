@@ -1,0 +1,116 @@
+{
+  "asset": "public/mimo/mimo-expressions.png",
+  "tool": "built-in image_gen.imagegen",
+  "mode": "default built-in",
+  "transparent_background": true,
+  "sourceIdentity": "public/memo/memo-slime.png",
+  "sourceIdentitySha256": "6fd8942db707e40757ef43f9c3007a8f7ce2f1dca12cc4aba0ec55996def0eed",
+  "generatedDefaultOutputPath": "/Users/Apple/.codex/generated_images/01a19174-391d-7c42-b358-96c240903e6d/exec-db1c8977-04d3-49c4-a6ec-0fae60ad1658.png",
+  "generationDate": "2026-10-31",
+  "grid": {
+    "columns": 4,
+    "rows": 2
+  },
+  "dimensions": {
+    "width": 1774,
+    "height": 887,
+    "aspectRatio": 2,
+    "cellWidth": 443.5,
+    "cellHeight": 443.5,
+    "cellAspectRatio": 1
+  },
+  "css": {
+    "backgroundSize": "400% 200%",
+    "aspectRatio": "1 / 1",
+    "recommendedBottomRowTranslateY": "9%"
+  },
+  "poses": [
+    {
+      "name": "idle",
+      "column": 0,
+      "row": 0,
+      "backgroundPosition": "0% 0%"
+    },
+    {
+      "name": "listening",
+      "column": 1,
+      "row": 0,
+      "backgroundPosition": "33.333333% 0%"
+    },
+    {
+      "name": "thinking",
+      "column": 2,
+      "row": 0,
+      "backgroundPosition": "66.666667% 0%"
+    },
+    {
+      "name": "insight",
+      "column": 3,
+      "row": 0,
+      "backgroundPosition": "100% 0%"
+    },
+    {
+      "name": "appreciation",
+      "column": 0,
+      "row": 1,
+      "backgroundPosition": "0% 100%"
+    },
+    {
+      "name": "curious",
+      "column": 1,
+      "row": 1,
+      "backgroundPosition": "33.333333% 100%"
+    },
+    {
+      "name": "rest",
+      "column": 2,
+      "row": 1,
+      "backgroundPosition": "66.666667% 100%"
+    },
+    {
+      "name": "reassure",
+      "column": 3,
+      "row": 1,
+      "backgroundPosition": "100% 100%"
+    }
+  ],
+  "prompt": "Use case: precise-object-edit\nAsset type: final production transparent CSS sprite sheet, exactly 4 equal columns by 2 equal rows.\nImage 1 is the eight-pose sprite sheet to correct. Image 2 is the canonical mascot identity reference.\nMake ONE targeted correction to Image 1: clean transparent margins and increase the empty padding around every pose. Preserve all eight existing character expressions, pose order, colors, identity, glossy material, and gestures from Image 1. Match the original mint jelly bookmark-tuft character from Image 2.\nKeep the wide canvas at aspect ratio 2:1 and the invisible 4×2 equal-cell grid. Shrink each character to occupy about 65–68% of its own square cell width, and no more than 72% cell height, with a consistent bottom baseline about 82% down each cell and consistent centers. Do not move any character into another cell. Leave at least 12% of each cell width as fully clear margin on all sides of every character, including hands and tufts.\nCritical alpha cleanup: remove EVERY stray mark outside the eight bodies. In Image 1 the gaps contain unwanted scattered cyan, blue and white speckles; eliminate all of those. Every pixel outside the actual eight connected slime silhouettes must be fully transparent alpha 0. No ground shadow, glows, white matte, colored fringe, speckles, checkerboard texture or isolated pixels. Preserve the white shine highlights INSIDE the jelly body. This must be genuinely transparent PNG alpha.\nReading order is unchanged: idle open-eyed; listening lean with hand beside head; thinking hand at chin; insight excited point upward; appreciation closed happy eyes and hands together; curious tilted wide-eyed; rest low sleepy body; reassure caring hand at chest and gentle extended arm.\nNo text, labels, grids, borders, symbols, accessories, clothes, props, extra characters, or shadows. Deliver one clean 4×2 transparent sprite sheet.",
+  "generationHistory": [
+    {
+      "prompt": "Use case: stylized-concept\nAsset type: production transparent CSS sprite sheet for the Mimo Chrome extension companion, exactly 4 columns by 2 rows, eight poses.\nInput image 1 is the canonical character identity reference. Create eight expression poses of this SAME mint jelly slime, preserving its distinctive rounded puddle base, pear/droplet jelly body, softly folded bookmark-like top tuft, glossy pale-mint translucent material, delicate lavender/blue edge tint, very dark navy oval eyes with white glints, tiny curved smile, and subtle mint cheeks. The character must look like the original in every cell. Tiny jelly arms may emerge from the body for gestures; do not add a human body.\nScene/backdrop: genuinely transparent alpha throughout all space outside each slime. No solid fill, no checkerboard pattern, no ground shadow.\nComposition: one clean wide image, target aspect ratio 2:1 (for example 2048×1024), divided invisibly into 4 equal columns and 2 equal rows. EXACTLY eight separately isolated slimes, each centered within its own equal square cell. No visible grid, labels, borders or text. Each character occupies about 68% of its cell width and at most 76% cell height with generous consistent empty transparent padding. All bodies share similar scale, centered x-position, and a consistent bottom baseline at about 85% of each cell. Keep every part within its own cell and keep the margins between cells fully clear.\nReading order left to right, top row then bottom row, one specific pose per cell:\n1 (top left): idle — upright, open dark oval eyes, calm small smile, arms relaxed.\n2 (top second): listening — a small lean toward the viewer's right, attentive focused eyes, one tiny jelly arm cupping the side of its head.\n3 (top third): thinking — curious eyes looking slightly upward, one tiny jelly hand resting thoughtfully at the chin.\n4 (top right): insight — excited bright open eyes and joyful smile, one tiny jelly arm pointing upward, with the finger made of jelly. No floating symbols.\n5 (bottom left): appreciation — happy softly closed crescent eyes, warm smile, tiny jelly arms held together gently against the chest.\n6 (bottom second): curious — head/body tilted gently toward viewer's left, wider oval eyes and a tiny inquisitive smile.\n7 (bottom third): rest — sleeping closed eyes, relaxed low squashed jelly body, tuft softly drooping. No sleep symbols.\n8 (bottom right): reassure — caring slight nod with a warm small smile, tender open eyes, one tiny jelly hand on the chest and the other extended a little in a comforting gesture.\nStyle: polished soft 3D-like glossy illustration closely matching the reference, friendly and quietly expressive. Maintain the same mint/lavender palette, eye design, recognizable tuft, and jelly material across all eight poses.\nAvoid: text, letters, numerals, labels, watermarks, grid lines, frame borders, clothes, hats, props, microphones, headphones, stars, hearts, sparkles, floating symbols, floating text, extra mascots, duplicate cells, photorealism, hard black outline, shadows outside the body, cropped limbs, touching neighboring cells.\nDeliver one production sprite sheet with real alpha transparency.",
+      "outputPath": "/Users/Apple/.codex/generated_images/01a19174-391d-7c42-b358-96c240903e6d/exec-7a3e62b7-89a6-4355-91f4-cfa2b7a03b71.png",
+      "selected": false,
+      "reason": "Corrective edit requested more empty padding and cleaner transparency."
+    },
+    {
+      "prompt": "Use case: precise-object-edit\nAsset type: final production transparent CSS sprite sheet, exactly 4 equal columns by 2 equal rows.\nImage 1 is the eight-pose sprite sheet to correct. Image 2 is the canonical mascot identity reference.\nMake ONE targeted correction to Image 1: clean transparent margins and increase the empty padding around every pose. Preserve all eight existing character expressions, pose order, colors, identity, glossy material, and gestures from Image 1. Match the original mint jelly bookmark-tuft character from Image 2.\nKeep the wide canvas at aspect ratio 2:1 and the invisible 4×2 equal-cell grid. Shrink each character to occupy about 65–68% of its own square cell width, and no more than 72% cell height, with a consistent bottom baseline about 82% down each cell and consistent centers. Do not move any character into another cell. Leave at least 12% of each cell width as fully clear margin on all sides of every character, including hands and tufts.\nCritical alpha cleanup: remove EVERY stray mark outside the eight bodies. In Image 1 the gaps contain unwanted scattered cyan, blue and white speckles; eliminate all of those. Every pixel outside the actual eight connected slime silhouettes must be fully transparent alpha 0. No ground shadow, glows, white matte, colored fringe, speckles, checkerboard texture or isolated pixels. Preserve the white shine highlights INSIDE the jelly body. This must be genuinely transparent PNG alpha.\nReading order is unchanged: idle open-eyed; listening lean with hand beside head; thinking hand at chin; insight excited point upward; appreciation closed happy eyes and hands together; curious tilted wide-eyed; rest low sleepy body; reassure caring hand at chest and gentle extended arm.\nNo text, labels, grids, borders, symbols, accessories, clothes, props, extra characters, or shadows. Deliver one clean 4×2 transparent sprite sheet.",
+      "outputPath": "/Users/Apple/.codex/generated_images/01a19174-391d-7c42-b358-96c240903e6d/exec-db1c8977-04d3-49c4-a6ec-0fae60ad1658.png",
+      "selected": true
+    }
+  ],
+  "validation": {
+    "format": "PNG 8-bit RGBA",
+    "alphaZeroPixels": 858200,
+    "alphaPartialPixels": 712473,
+    "alphaOpaquePixels": 2865,
+    "substantialAlpha128Components": 8,
+    "originalAssetUnchanged": true,
+    "previewEvidence": "docs/design-assets/mimo-expressions-preview.png",
+    "preview": {
+      "cssCellWidth": 140,
+      "cssCellHeight": 140,
+      "backgrounds": [
+        "#f5f6fc",
+        "#151925",
+        "#4643ce"
+      ],
+      "wholeSheetUsed": true,
+      "allEightCellsInspected": true,
+      "perceptibleStrayPixels": false,
+      "cellLeakage": false,
+      "note": "Second-row bodies sit approximately 9% cell height above the first-row baseline; compensate in the sprite stage when swapping rows."
+    },
+    "embeddedPromptMatchesExact": true,
+    "assetSha256": "1610274fbfbae7d38a4a8e9ad026b81936329ff31b5c8e2258d6f5f9f93e40bf"
+  }
+}

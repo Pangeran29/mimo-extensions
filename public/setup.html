@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mimo settings</title>
+    <link rel="stylesheet" href="mimo.css" />
+    <link rel="stylesheet" href="setup.css" />
+  </head>
+  <body class="setup">
+    <main>
+      <div id="overview">
+        <div class="settings-hero">
+          <div id="settings-mimo-brand" class="memo-brand" aria-label="Mimo">
+            <button
+              id="settings-mimo-greeting"
+              class="settings-mimo-greeting"
+              type="button"
+              aria-label="Say hello to Mimo"
+              title="Say hello to Mimo"
+            >
+              <img src="memo/memo-slime.png" alt="" width="60" height="60" draggable="false" />
+            </button>
+            <span>Mimo</span>
+          </div>
+          <div class="settings-overview-heading">
+            <button
+              id="settings-return"
+              class="text-button"
+              type="button"
+              aria-label="Back to Mimo"
+              title="Back to Mimo"
+              hidden
+            >
+              <svg viewBox="0 0 20 20" aria-hidden="true">
+                <path d="M16 10H4m5-5-5 5 5 5" />
+              </svg>
+            </button>
+            <h1 id="overview-title" tabindex="-1">Settings</h1>
+          </div>
+          <p id="readiness" class="subtitle" role="status">Checking setup…</p>
+          <p id="settings-mimo-message" class="settings-intro" aria-live="polite">
+            Make Mimo ready for your next conversation.
+          </p>
+        </div>
+        <p id="overview-feedback" class="feedback" role="status" hidden></p>
+        <nav class="settings-list" aria-label="Session requirements">
+          <button id="open-microphone" class="setting-row" data-screen="microphone">
+            <span class="setting-label"
+              ><svg viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="8" y="3" width="8" height="12" rx="4" />
+                <path d="M5 11v1a7 7 0 0 0 14 0v-1M12 19v3m-4 0h8" /></svg
+              ><span>Microphone</span></span
+            ><span class="row-end"
+              ><span id="mic-state">Checking…</span
+              ><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m8 5 5 5-5 5" /></svg
+            ></span>
+          </button>
+          <button id="open-transcription" class="setting-row" data-screen="transcription">
+            <span class="setting-label"
+              ><svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M5 5h14v14H5zM8 9h8m-8 3h8m-8 3h5" /></svg
+              ><span>Transcription</span></span
+            ><span class="row-end"
+              ><span id="model-state">Checking…</span
+              ><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m8 5 5 5-5 5" /></svg
+            ></span>
+          </button>
+          <button id="open-ai" class="setting-row" data-screen="ai">
+            <span class="setting-label"
+              ><svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M8 8 5 5m11 3 3-3M8 16l-3 3m11-3 3 3" />
+                <rect x="7" y="7" width="10" height="10" rx="3" />
+                <path d="M10 12h4m-2-2v4" /></svg
+              ><span>AI connection</span></span
+            ><span class="row-end"
+              ><span id="ai-state">Checking…</span
+              ><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m8 5 5 5-5 5" /></svg
+            ></span>
+          </button>
+        </nav>
+        <nav class="settings-list secondary-list" aria-label="Other settings">
+          <button id="settings-history" class="setting-row" type="button" hidden>
+            <span class="setting-label"
+              ><svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 10a8 8 0 1 1 1 7M4 5v5h5M12 7v5l3 2" /></svg
+              ><span>Session history</span></span
+            ><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m8 5 5 5-5 5" /></svg>
+          </button>
+          <button id="open-appearance" class="setting-row" data-screen="appearance">
+            <span class="setting-label"
+              ><svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="12" r="8" />
+                <path d="M12 4a8 8 0 0 1 0 16Z" /></svg
+              ><span>Appearance</span></span
+            ><span class="row-end"
+              ><span id="appearance-state">Automatic</span
+              ><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m8 5 5 5-5 5" /></svg
+            ></span>
+          </button>
+          <button id="open-defaults" class="setting-row" data-screen="defaults">
+            <span class="setting-label"
+              ><svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 7h16M4 17h16" />
+                <circle cx="9" cy="7" r="3" />
+                <circle cx="15" cy="17" r="3" /></svg
+              ><span>Session defaults</span></span
+            ><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m8 5 5 5-5 5" /></svg>
+          </button>
+          <button id="open-privacy" class="setting-row" data-screen="privacy">
+            <span class="setting-label"
+              ><svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="m12 3 8 4v5c0 5-8 9-8 9s-8-4-8-9V7Z" />
+                <path d="m8 12 3 3 5-6" /></svg
+              ><span>Privacy &amp; help</span></span
+            ><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m8 5 5 5-5 5" /></svg>
+          </button>
+        </nav>
+      </div>
+      <div id="detail" hidden>
+        <div class="settings-detail-heading">
+          <button
+            id="back"
+            class="text-button back"
+            aria-label="Back to settings"
+            title="Back to settings"
+          >
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M16 10H4m5-5-5 5 5 5" /></svg
+            ><span class="sr-only">Settings</span>
+          </button>
+          <h1 id="detail-title" tabindex="-1"></h1>
+        </div>
+        <section id="screen-appearance" hidden aria-labelledby="detail-title">
+          <label for="assistant-surface">Surface</label>
+          <select id="assistant-surface" disabled>
+            <option value="Automatic">Automatic · local time</option>
+            <option value="Midnight">Midnight</option>
+            <option value="Daylight">Daylight</option>
+          </select>
+          <p class="hint">Daylight 06:00–18:00. Midnight 18:00–06:00.</p>
+          <p id="appearance-result" class="feedback" role="status" hidden></p>
+        </section>
+        <section id="screen-ai" hidden aria-labelledby="detail-title">
+          <form id="ai-form" novalidate>
+            <fieldset id="ai-fields" disabled>
+              <label for="ai-provider">AI provider</label>
+              <select id="ai-provider" aria-describedby="ai-provider-help">
+                <option value="hpop">HPOP · Claude Sonnet</option>
+                <option value="deepinfra">DeepInfra · DeepSeek V4.1 Flash</option>
+              </select>
+              <p id="ai-provider-help" class="hint">
+                Choose between meetings. Your saved HPOP connection is retained.
+              </p>
+              <p id="managed-notes-info" class="consent" hidden>
+                Uses our managed DeepInfra service and DeepSeek-V4.1-Flash-1017. No provider key is
+                needed here. Transcript text is sent to DeepInfra. API charges may apply.
+              </p>
+              <div id="hpop-connection">
+                <div class="label-row">
+                  <label for="ai-key">HPOP API key</label
+                  ><a href="https://hpop.ai/" target="_blank" rel="noreferrer"
+                    >Get key
+                    <svg viewBox="0 0 20 20" aria-hidden="true">
+                      <path d="M11 3h6v6m0-6-9 9M7 4H3v13h13v-4" /></svg
+                  ></a>
+                </div>
+                <div class="key-input">
+                  <input
+                    id="ai-key"
+                    type="password"
+                    autocomplete="off"
+                    spellcheck="false"
+                    maxlength="512"
+                    placeholder="Paste your key"
+                    aria-describedby="ai-key-state ai-key-error"
+                  /><button
+                    id="ai-key-toggle"
+                    type="button"
+                    aria-controls="ai-key"
+                    aria-pressed="false"
+                    aria-label="Show API key"
+                  >
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                  </button>
+                </div>
+                <p id="ai-key-error" class="field-error" hidden></p>
+                <p id="ai-key-state" class="hint">Saved on this device until you remove it.</p>
+                <p class="consent">
+                  Transcript text is sent to HPOP and its model provider. API charges may apply.
+                </p>
+              </div>
+              <button id="ai-save" class="primary" type="submit">Save connection</button>
+              <button id="ai-reset" class="text-button reset" type="button" hidden>
+                Discard changes
+              </button>
+            </fieldset>
+          </form>
+          <p id="ai-result" class="feedback" role="status" hidden></p>
+          <button id="ai-reload" class="text-button" hidden>Retry loading</button>
+          <details id="key-management" hidden>
+            <summary>Manage saved key</summary>
+            <p class="hint">Removing the key blocks new sessions until you add one again.</p>
+            <button id="ai-clear" class="text-button danger" type="button">Remove key</button>
+            <div id="remove-confirm" hidden>
+              <p>Remove the saved key?</p>
+              <div class="inline-actions">
+                <button id="confirm-remove" class="secondary" type="button">Remove key</button
+                ><button id="cancel-remove" class="text-button" type="button">Keep key</button>
+              </div>
+            </div>
+          </details>
+        </section>
+        <section id="screen-microphone" hidden aria-labelledby="detail-title">
+          <p class="subtitle">Your microphone and the current tab are recorded.</p>
+          <button id="grant" class="primary" type="button">Allow microphone</button>
+          <p id="result" class="feedback" role="status" hidden></p>
+          <p class="hint spaced">Meeting mute doesn’t mute Mimo’s microphone.</p>
+          <details id="mic-help">
+            <summary>Microphone not working?</summary>
+            <p>
+              Allow microphone access in Chrome’s extension permissions. On Mac, check System
+              Settings → Privacy &amp; Security → Microphone → Google Chrome, then restart Chrome.
+            </p>
+            <p>
+              Connect a microphone and check that another app isn’t blocking it. The permission
+              check stops immediately.
+            </p>
+          </details>
+        </section>
+        <section id="screen-transcription" hidden aria-labelledby="detail-title">
+          <p class="subtitle">Speech is transcribed in the cloud.</p>
+          <p id="model-first-setup" class="hint spaced">
+            Transcription starts automatically when you listen. No speech-model download or provider
+            account is needed.
+          </p>
+          <div class="model-controls">
+            <svg class="model-ready-mark" viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" />
+              <path d="m8 12 3 3 5-6" />
+            </svg>
+            <button id="prepare-transcription" class="primary" type="button">
+              <span id="prepare-label">Check transcription</span
+              ><svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M20 8a8 8 0 1 0 0 8M20 3v5h-5" />
+              </svg>
+            </button>
+
+            <p id="transcription-result" class="feedback" role="status" hidden></p>
+          </div>
+          <progress id="model-progress" aria-label="Preparing transcription" hidden></progress>
+          <details>
+            <summary>About cloud transcription</summary>
+            <p>
+              Speech windows are sent to DeepInfra for transcription. If the connection fails,
+              recording continues and queued speech retries automatically. Check important names and
+              numbers against your recording.
+            </p>
+          </details>
+        </section>
+        <section id="screen-defaults" hidden aria-labelledby="detail-title">
+          <p class="subtitle">Applied to future listening sessions.</p>
+          <p class="hint">
+            Guide the current understanding and additional contributions toward what matters to you.
+          </p>
+          <form id="defaults-form">
+            <fieldset id="defaults-fields" disabled>
+              <label for="ai-goal">Default objective <span class="optional">Optional</span></label
+              ><textarea
+                id="ai-goal"
+                maxlength="500"
+                placeholder="What should Mimo focus on?"
+                aria-describedby="goal-count"
+              ></textarea>
+              <p id="goal-count" class="hint count">0 / 500</p>
+              <button id="defaults-save" class="primary" type="submit">Save defaults</button
+              ><button id="defaults-reset" class="text-button reset" type="button" hidden>
+                Discard changes
+              </button>
+            </fieldset>
+          </form>
+          <p id="defaults-result" class="feedback" role="status" hidden></p>
+          <button id="defaults-reload" class="text-button" hidden>Retry loading</button>
+        </section>
+        <section id="screen-privacy" class="help-copy" hidden aria-labelledby="detail-title">
+          <h2>How Mimo joins in</h2>
+          <p>
+            Your current understanding follows the conversation. When Mimo has a useful
+            contribution, it gets its own reading space.
+          </p>
+          <p>
+            Useful saves your feedback and returns to the understanding. Skip, Close, or Escape
+            returns without a rating. You can ask Mimo to reopen an available contribution.
+          </p>
+          <details class="mimo-help">
+            <summary>What do Sources and labels mean?</summary>
+            <p>
+              Sources open the transcript passages behind an output. Interpretation, general
+              knowledge, and suggestions are labeled separately from what participants said.
+              Conversation sources provide context; they do not verify outside knowledge.
+            </p>
+          </details>
+          <h2>Conversation diagnostics</h2>
+          <label class="agent-diagnostics-toggle" for="agent-diagnostics-enabled">
+            <input id="agent-diagnostics-enabled" type="checkbox" disabled />
+            Save agent diagnostics for future meetings
+          </label>
+          <p>
+            Includes transcript passages, instructions, model responses and saved notes. A report
+            downloads after you stop and final processing finishes. Reports stay on this device;
+            keys and audio are excluded. The latest four reports are retained locally, up to 16 MiB
+            of captured events per meeting. Review contents before sharing.
+          </p>
+          <button id="download-agent-report" class="secondary" type="button">
+            Download latest agent report
+          </button>
+          <p id="agent-diagnostics-result" class="feedback" role="status" hidden></p>
+          <h2>Diagnose a problem</h2>
+          <p>
+            Download the latest failure details and app version. The report contains no key,
+            transcript, meeting notes or audio. No recording or test request is started.
+          </p>
+          <button id="download-diagnostics" class="secondary" type="button">
+            Download diagnostics
+          </button>
+          <p id="diagnostics-result" class="feedback" role="status" hidden></p>
+          <pre
+            id="diagnostics-preview"
+            class="diagnostics-preview"
+            tabindex="0"
+            aria-label="Diagnostic report preview"
+            hidden
+          ></pre>
+          <h2>What’s recorded</h2>
+          <p>
+            Mimo captures your microphone and one Chrome tab. Other tabs and desktop apps are not
+            captured. Let participants know when recording; use Stop &amp; Save to finish.
+          </p>
+          <h2>What stays local</h2>
+          <p>
+            Audio recordings and transcript copies stay on this device. Pending speech windows are
+            retained locally until transcription succeeds.
+          </p>
+          <h2>What goes to the cloud</h2>
+          <p>
+            Speech windows go through our transcription service to DeepInfra. Transcript text, your
+            objective, and meeting context go to your selected notes provider: HPOP and its model
+            provider, or DeepInfra. API charges may apply. Model speed and usefulness are
+            experimental.
+          </p>
+          <h2>Your AI connection key</h2>
+          <p>
+            Your key stays in local storage on this device until you remove it or uninstall the
+            extension. It is not synced to other devices. Saving a connection checks configuration,
+            not remote key validity.
+          </p>
+          <h2>Before listening</h2>
+          <p>
+            Microphone access and AI configuration are required. Cloud transcription connects
+            automatically. Open a website and press Start listening in the Mimo popup.
+          </p>
+        </section>
+      </div>
+      <p id="settings-mimo-announcement" class="sr-only" aria-live="polite"></p>
+    </main>
+    <footer class="settings-footer">
+      <button
+        id="finish"
+        class="icon-button"
+        aria-label="Open live memo"
+        title="Open live memo"
+        hidden
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="3" y="4" width="18" height="16" rx="2" />
+          <path d="M15 4v16M7 12h5m-2-2 2 2-2 2" />
+        </svg>
+        <span>Open live memo</span>
+      </button>
+    </footer>
+    <script type="module" src="setup.js"></script>
+  </body>
+</html>

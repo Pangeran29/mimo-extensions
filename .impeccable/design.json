@@ -1,0 +1,1227 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-01T17:34:45.446756Z",
+  "title": "Design System: Mimo",
+  "extensions": {
+    "sourceOfTruth": {
+      "primitives": "DESIGN.md frontmatter",
+      "implementation": [
+        "public/assistant.html",
+        "public/assistant.css",
+        "public/assistant-upper.css",
+        "src/assistant/memo-character.ts",
+        "src/assistant/v2/view.ts",
+        "src/assistant-window.ts",
+        "public/popup.html",
+        "public/popup.css",
+        "src/popup.ts",
+        "public/setup.html",
+        "public/setup.css",
+        "src/appearance.ts",
+        "public/mimo.css",
+        "src/mimo/mascot.ts",
+        "src/mimo/presentation.ts"
+      ],
+      "scope": "Reviewed Mimo 0.12.2 source candidate, 2026-11-01; inherited Daylight/Midnight mint-and-violet world retained. Normal 44-file candidate build 2026-11-01T17:17:39.527Z and separate research 51-file build 2026-11-01T17:31:30.256Z remain unpromoted and unactivated. Latest user-reported installed version is 0.12.1 in both profiles. Main recording was active at the latest observation; Stop & Save authorization, promotion and relay restart remain pending. Historical version evidence is preserved in PRODUCT.md and artifact records.",
+      "componentPreview": "Scoped, self-contained HTML/CSS using source semantic CSS variables with Daylight fallbacks. Illustrative reading text is not product output. The canonical raster is referenced by asset metadata rather than approximated in the preview.",
+      "review": "artifacts/mimo-stability-2026-11-01/frontend-finish-review.md: ship, no material fixes. Independent code review: no actionable findings. 102 focused UI assertions/nine captures; 27 disposable actual-Chrome pipeline assertions/five captures with fixed synthetic ASR/LLM responses; 299 unit, 15 relay and five additional Node tests plus offline tools/typecheck/build pass. Compact 210 CSS evidence is not new native 200% proof; EOF lifecycle is checkpoint/report-backed, not visible in the held PNG. Zero paid inference; no model-quality, provider-health, latency or activation claim."
+    },
+    "colorMeta": {
+      "live-field": {
+        "role": "primary",
+        "displayName": "Live field",
+        "canonical": "#4643ce",
+        "tonalRamp": [
+          "oklch(15.00% 0.20713 276.14)",
+          "oklch(26.43% 0.20713 276.14)",
+          "oklch(37.86% 0.20713 276.14)",
+          "oklch(49.29% 0.20713 276.14)",
+          "oklch(60.71% 0.20713 276.14)",
+          "oklch(72.14% 0.20713 276.14)",
+          "oklch(83.57% 0.20713 276.14)",
+          "oklch(95.00% 0.20713 276.14)"
+        ]
+      },
+      "live-ink": {
+        "role": "neutral",
+        "displayName": "Live ink",
+        "canonical": "#fff",
+        "tonalRamp": [
+          "oklch(15.00% 0.00000 89.88)",
+          "oklch(26.43% 0.00000 89.88)",
+          "oklch(37.86% 0.00000 89.88)",
+          "oklch(49.29% 0.00000 89.88)",
+          "oklch(60.71% 0.00000 89.88)",
+          "oklch(72.14% 0.00000 89.88)",
+          "oklch(83.57% 0.00000 89.88)",
+          "oklch(95.00% 0.00000 89.88)"
+        ]
+      },
+      "live-muted": {
+        "role": "neutral",
+        "displayName": "Live muted",
+        "canonical": "#e5e5ff",
+        "tonalRamp": [
+          "oklch(15.00% 0.03509 285.70)",
+          "oklch(26.43% 0.03509 285.70)",
+          "oklch(37.86% 0.03509 285.70)",
+          "oklch(49.29% 0.03509 285.70)",
+          "oklch(60.71% 0.03509 285.70)",
+          "oklch(72.14% 0.03509 285.70)",
+          "oklch(83.57% 0.03509 285.70)",
+          "oklch(95.00% 0.03509 285.70)"
+        ]
+      },
+      "popup-action-surface": {
+        "role": "primary",
+        "displayName": "Popup action surface",
+        "canonical": "#f0efff",
+        "tonalRamp": [
+          "oklch(15.00% 0.02138 288.86)",
+          "oklch(26.43% 0.02138 288.86)",
+          "oklch(37.86% 0.02138 288.86)",
+          "oklch(49.29% 0.02138 288.86)",
+          "oklch(60.71% 0.02138 288.86)",
+          "oklch(72.14% 0.02138 288.86)",
+          "oklch(83.57% 0.02138 288.86)",
+          "oklch(95.00% 0.02138 288.86)"
+        ]
+      },
+      "popup-live-muted": {
+        "role": "neutral",
+        "displayName": "Popup live muted",
+        "canonical": "#e1e0ff",
+        "tonalRamp": [
+          "oklch(15.00% 0.04201 287.02)",
+          "oklch(26.43% 0.04201 287.02)",
+          "oklch(37.86% 0.04201 287.02)",
+          "oklch(49.29% 0.04201 287.02)",
+          "oklch(60.71% 0.04201 287.02)",
+          "oklch(72.14% 0.04201 287.02)",
+          "oklch(83.57% 0.04201 287.02)",
+          "oklch(95.00% 0.04201 287.02)"
+        ]
+      },
+      "settings-live-muted": {
+        "role": "neutral",
+        "displayName": "Settings live muted",
+        "canonical": "#e0e3ff",
+        "tonalRamp": [
+          "oklch(15.00% 0.03812 280.77)",
+          "oklch(26.43% 0.03812 280.77)",
+          "oklch(37.86% 0.03812 280.77)",
+          "oklch(49.29% 0.03812 280.77)",
+          "oklch(60.71% 0.03812 280.77)",
+          "oklch(72.14% 0.03812 280.77)",
+          "oklch(83.57% 0.03812 280.77)",
+          "oklch(95.00% 0.03812 280.77)"
+        ]
+      },
+      "hero-secondary": {
+        "role": "primary",
+        "displayName": "Hero secondary",
+        "canonical": "#3734ae",
+        "tonalRamp": [
+          "oklch(15.00% 0.18693 275.61)",
+          "oklch(26.43% 0.18693 275.61)",
+          "oklch(37.86% 0.18693 275.61)",
+          "oklch(49.29% 0.18693 275.61)",
+          "oklch(60.71% 0.18693 275.61)",
+          "oklch(72.14% 0.18693 275.61)",
+          "oklch(83.57% 0.18693 275.61)",
+          "oklch(95.00% 0.18693 275.61)"
+        ]
+      },
+      "daylight-surface": {
+        "role": "neutral",
+        "displayName": "Daylight surface",
+        "canonical": "#f5f6fc",
+        "tonalRamp": [
+          "oklch(15.00% 0.00804 278.64)",
+          "oklch(26.43% 0.00804 278.64)",
+          "oklch(37.86% 0.00804 278.64)",
+          "oklch(49.29% 0.00804 278.64)",
+          "oklch(60.71% 0.00804 278.64)",
+          "oklch(72.14% 0.00804 278.64)",
+          "oklch(83.57% 0.00804 278.64)",
+          "oklch(95.00% 0.00804 278.64)"
+        ]
+      },
+      "daylight-panel": {
+        "role": "neutral",
+        "displayName": "Daylight panel",
+        "canonical": "#fff",
+        "tonalRamp": [
+          "oklch(15.00% 0.00000 89.88)",
+          "oklch(26.43% 0.00000 89.88)",
+          "oklch(37.86% 0.00000 89.88)",
+          "oklch(49.29% 0.00000 89.88)",
+          "oklch(60.71% 0.00000 89.88)",
+          "oklch(72.14% 0.00000 89.88)",
+          "oklch(83.57% 0.00000 89.88)",
+          "oklch(95.00% 0.00000 89.88)"
+        ]
+      },
+      "daylight-soft": {
+        "role": "neutral",
+        "displayName": "Daylight soft",
+        "canonical": "#eceffa",
+        "tonalRamp": [
+          "oklch(15.00% 0.01510 273.85)",
+          "oklch(26.43% 0.01510 273.85)",
+          "oklch(37.86% 0.01510 273.85)",
+          "oklch(49.29% 0.01510 273.85)",
+          "oklch(60.71% 0.01510 273.85)",
+          "oklch(72.14% 0.01510 273.85)",
+          "oklch(83.57% 0.01510 273.85)",
+          "oklch(95.00% 0.01510 273.85)"
+        ]
+      },
+      "daylight-ink": {
+        "role": "neutral",
+        "displayName": "Daylight ink",
+        "canonical": "#252b45",
+        "tonalRamp": [
+          "oklch(15.00% 0.04813 273.23)",
+          "oklch(26.43% 0.04813 273.23)",
+          "oklch(37.86% 0.04813 273.23)",
+          "oklch(49.29% 0.04813 273.23)",
+          "oklch(60.71% 0.04813 273.23)",
+          "oklch(72.14% 0.04813 273.23)",
+          "oklch(83.57% 0.04813 273.23)",
+          "oklch(95.00% 0.04813 273.23)"
+        ]
+      },
+      "daylight-muted": {
+        "role": "neutral",
+        "displayName": "Daylight muted",
+        "canonical": "#65708a",
+        "tonalRamp": [
+          "oklch(15.00% 0.04285 267.00)",
+          "oklch(26.43% 0.04285 267.00)",
+          "oklch(37.86% 0.04285 267.00)",
+          "oklch(49.29% 0.04285 267.00)",
+          "oklch(60.71% 0.04285 267.00)",
+          "oklch(72.14% 0.04285 267.00)",
+          "oklch(83.57% 0.04285 267.00)",
+          "oklch(95.00% 0.04285 267.00)"
+        ]
+      },
+      "daylight-line": {
+        "role": "neutral",
+        "displayName": "Daylight line",
+        "canonical": "#dce1ef",
+        "tonalRamp": [
+          "oklch(15.00% 0.01980 270.20)",
+          "oklch(26.43% 0.01980 270.20)",
+          "oklch(37.86% 0.01980 270.20)",
+          "oklch(49.29% 0.01980 270.20)",
+          "oklch(60.71% 0.01980 270.20)",
+          "oklch(72.14% 0.01980 270.20)",
+          "oklch(83.57% 0.01980 270.20)",
+          "oklch(95.00% 0.01980 270.20)"
+        ]
+      },
+      "daylight-accent": {
+        "role": "primary",
+        "displayName": "Daylight accent",
+        "canonical": "#3859cb",
+        "tonalRamp": [
+          "oklch(15.00% 0.18091 267.31)",
+          "oklch(26.43% 0.18091 267.31)",
+          "oklch(37.86% 0.18091 267.31)",
+          "oklch(49.29% 0.18091 267.31)",
+          "oklch(60.71% 0.18091 267.31)",
+          "oklch(72.14% 0.18091 267.31)",
+          "oklch(83.57% 0.18091 267.31)",
+          "oklch(95.00% 0.18091 267.31)"
+        ]
+      },
+      "daylight-tint": {
+        "role": "neutral",
+        "displayName": "Daylight tint",
+        "canonical": "#edf0ff",
+        "tonalRamp": [
+          "oklch(15.00% 0.02036 276.96)",
+          "oklch(26.43% 0.02036 276.96)",
+          "oklch(37.86% 0.02036 276.96)",
+          "oklch(49.29% 0.02036 276.96)",
+          "oklch(60.71% 0.02036 276.96)",
+          "oklch(72.14% 0.02036 276.96)",
+          "oklch(83.57% 0.02036 276.96)",
+          "oklch(95.00% 0.02036 276.96)"
+        ]
+      },
+      "daylight-control-line": {
+        "role": "neutral",
+        "displayName": "Daylight control line",
+        "canonical": "#aeb9d1",
+        "tonalRamp": [
+          "oklch(15.00% 0.03628 265.93)",
+          "oklch(26.43% 0.03628 265.93)",
+          "oklch(37.86% 0.03628 265.93)",
+          "oklch(49.29% 0.03628 265.93)",
+          "oklch(60.71% 0.03628 265.93)",
+          "oklch(72.14% 0.03628 265.93)",
+          "oklch(83.57% 0.03628 265.93)",
+          "oklch(95.00% 0.03628 265.93)"
+        ]
+      },
+      "daylight-action-hover": {
+        "role": "neutral",
+        "displayName": "Daylight action hover",
+        "canonical": "#2f4cba",
+        "tonalRamp": [
+          "oklch(15.00% 0.17655 267.59)",
+          "oklch(26.43% 0.17655 267.59)",
+          "oklch(37.86% 0.17655 267.59)",
+          "oklch(49.29% 0.17655 267.59)",
+          "oklch(60.71% 0.17655 267.59)",
+          "oklch(72.14% 0.17655 267.59)",
+          "oklch(83.57% 0.17655 267.59)",
+          "oklch(95.00% 0.17655 267.59)"
+        ]
+      },
+      "daylight-action-active": {
+        "role": "neutral",
+        "displayName": "Daylight action active",
+        "canonical": "#2841a2",
+        "tonalRamp": [
+          "oklch(15.00% 0.15955 267.75)",
+          "oklch(26.43% 0.15955 267.75)",
+          "oklch(37.86% 0.15955 267.75)",
+          "oklch(49.29% 0.15955 267.75)",
+          "oklch(60.71% 0.15955 267.75)",
+          "oklch(72.14% 0.15955 267.75)",
+          "oklch(83.57% 0.15955 267.75)",
+          "oklch(95.00% 0.15955 267.75)"
+        ]
+      },
+      "daylight-row-hover": {
+        "role": "neutral",
+        "displayName": "Daylight row hover",
+        "canonical": "#f1f3fd",
+        "tonalRamp": [
+          "oklch(15.00% 0.01352 277.06)",
+          "oklch(26.43% 0.01352 277.06)",
+          "oklch(37.86% 0.01352 277.06)",
+          "oklch(49.29% 0.01352 277.06)",
+          "oklch(60.71% 0.01352 277.06)",
+          "oklch(72.14% 0.01352 277.06)",
+          "oklch(83.57% 0.01352 277.06)",
+          "oklch(95.00% 0.01352 277.06)"
+        ]
+      },
+      "daylight-row-active": {
+        "role": "neutral",
+        "displayName": "Daylight row active",
+        "canonical": "#e8edfc",
+        "tonalRamp": [
+          "oklch(15.00% 0.02090 271.19)",
+          "oklch(26.43% 0.02090 271.19)",
+          "oklch(37.86% 0.02090 271.19)",
+          "oklch(49.29% 0.02090 271.19)",
+          "oklch(60.71% 0.02090 271.19)",
+          "oklch(72.14% 0.02090 271.19)",
+          "oklch(83.57% 0.02090 271.19)",
+          "oklch(95.00% 0.02090 271.19)"
+        ]
+      },
+      "midnight-surface": {
+        "role": "neutral",
+        "displayName": "Midnight surface",
+        "canonical": "#151925",
+        "tonalRamp": [
+          "oklch(15.00% 0.02452 270.02)",
+          "oklch(26.43% 0.02452 270.02)",
+          "oklch(37.86% 0.02452 270.02)",
+          "oklch(49.29% 0.02452 270.02)",
+          "oklch(60.71% 0.02452 270.02)",
+          "oklch(72.14% 0.02452 270.02)",
+          "oklch(83.57% 0.02452 270.02)",
+          "oklch(95.00% 0.02452 270.02)"
+        ]
+      },
+      "midnight-panel": {
+        "role": "neutral",
+        "displayName": "Midnight panel",
+        "canonical": "#1d2436",
+        "tonalRamp": [
+          "oklch(15.00% 0.03543 267.62)",
+          "oklch(26.43% 0.03543 267.62)",
+          "oklch(37.86% 0.03543 267.62)",
+          "oklch(49.29% 0.03543 267.62)",
+          "oklch(60.71% 0.03543 267.62)",
+          "oklch(72.14% 0.03543 267.62)",
+          "oklch(83.57% 0.03543 267.62)",
+          "oklch(95.00% 0.03543 267.62)"
+        ]
+      },
+      "midnight-ink": {
+        "role": "neutral",
+        "displayName": "Midnight ink",
+        "canonical": "#eff1fa",
+        "tonalRamp": [
+          "oklch(15.00% 0.01222 276.10)",
+          "oklch(26.43% 0.01222 276.10)",
+          "oklch(37.86% 0.01222 276.10)",
+          "oklch(49.29% 0.01222 276.10)",
+          "oklch(60.71% 0.01222 276.10)",
+          "oklch(72.14% 0.01222 276.10)",
+          "oklch(83.57% 0.01222 276.10)",
+          "oklch(95.00% 0.01222 276.10)"
+        ]
+      },
+      "midnight-muted": {
+        "role": "neutral",
+        "displayName": "Midnight muted",
+        "canonical": "#aab4ce",
+        "tonalRamp": [
+          "oklch(15.00% 0.03881 268.79)",
+          "oklch(26.43% 0.03881 268.79)",
+          "oklch(37.86% 0.03881 268.79)",
+          "oklch(49.29% 0.03881 268.79)",
+          "oklch(60.71% 0.03881 268.79)",
+          "oklch(72.14% 0.03881 268.79)",
+          "oklch(83.57% 0.03881 268.79)",
+          "oklch(95.00% 0.03881 268.79)"
+        ]
+      },
+      "midnight-line": {
+        "role": "neutral",
+        "displayName": "Midnight line",
+        "canonical": "#343e57",
+        "tonalRamp": [
+          "oklch(15.00% 0.04539 267.35)",
+          "oklch(26.43% 0.04539 267.35)",
+          "oklch(37.86% 0.04539 267.35)",
+          "oklch(49.29% 0.04539 267.35)",
+          "oklch(60.71% 0.04539 267.35)",
+          "oklch(72.14% 0.04539 267.35)",
+          "oklch(83.57% 0.04539 267.35)",
+          "oklch(95.00% 0.04539 267.35)"
+        ]
+      },
+      "midnight-accent": {
+        "role": "primary",
+        "displayName": "Midnight accent",
+        "canonical": "#a8b8ff",
+        "tonalRamp": [
+          "oklch(15.00% 0.10260 274.09)",
+          "oklch(26.43% 0.10260 274.09)",
+          "oklch(37.86% 0.10260 274.09)",
+          "oklch(49.29% 0.10260 274.09)",
+          "oklch(60.71% 0.10260 274.09)",
+          "oklch(72.14% 0.10260 274.09)",
+          "oklch(83.57% 0.10260 274.09)",
+          "oklch(95.00% 0.10260 274.09)"
+        ]
+      },
+      "midnight-tint": {
+        "role": "neutral",
+        "displayName": "Midnight tint",
+        "canonical": "#2a355a",
+        "tonalRamp": [
+          "oklch(15.00% 0.06691 270.02)",
+          "oklch(26.43% 0.06691 270.02)",
+          "oklch(37.86% 0.06691 270.02)",
+          "oklch(49.29% 0.06691 270.02)",
+          "oklch(60.71% 0.06691 270.02)",
+          "oklch(72.14% 0.06691 270.02)",
+          "oklch(83.57% 0.06691 270.02)",
+          "oklch(95.00% 0.06691 270.02)"
+        ]
+      },
+      "midnight-control-line": {
+        "role": "neutral",
+        "displayName": "Midnight control line",
+        "canonical": "#596681",
+        "tonalRamp": [
+          "oklch(15.00% 0.04595 264.71)",
+          "oklch(26.43% 0.04595 264.71)",
+          "oklch(37.86% 0.04595 264.71)",
+          "oklch(49.29% 0.04595 264.71)",
+          "oklch(60.71% 0.04595 264.71)",
+          "oklch(72.14% 0.04595 264.71)",
+          "oklch(83.57% 0.04595 264.71)",
+          "oklch(95.00% 0.04595 264.71)"
+        ]
+      },
+      "midnight-action-hover": {
+        "role": "neutral",
+        "displayName": "Midnight action hover",
+        "canonical": "#bdcaff",
+        "tonalRamp": [
+          "oklch(15.00% 0.07553 273.95)",
+          "oklch(26.43% 0.07553 273.95)",
+          "oklch(37.86% 0.07553 273.95)",
+          "oklch(49.29% 0.07553 273.95)",
+          "oklch(60.71% 0.07553 273.95)",
+          "oklch(72.14% 0.07553 273.95)",
+          "oklch(83.57% 0.07553 273.95)",
+          "oklch(95.00% 0.07553 273.95)"
+        ]
+      },
+      "midnight-action-active": {
+        "role": "neutral",
+        "displayName": "Midnight action active",
+        "canonical": "#8da2f6",
+        "tonalRamp": [
+          "oklch(15.00% 0.12446 272.32)",
+          "oklch(26.43% 0.12446 272.32)",
+          "oklch(37.86% 0.12446 272.32)",
+          "oklch(49.29% 0.12446 272.32)",
+          "oklch(60.71% 0.12446 272.32)",
+          "oklch(72.14% 0.12446 272.32)",
+          "oklch(83.57% 0.12446 272.32)",
+          "oklch(95.00% 0.12446 272.32)"
+        ]
+      },
+      "midnight-row-hover": {
+        "role": "neutral",
+        "displayName": "Midnight row hover",
+        "canonical": "#252e45",
+        "tonalRamp": [
+          "oklch(15.00% 0.04366 267.42)",
+          "oklch(26.43% 0.04366 267.42)",
+          "oklch(37.86% 0.04366 267.42)",
+          "oklch(49.29% 0.04366 267.42)",
+          "oklch(60.71% 0.04366 267.42)",
+          "oklch(72.14% 0.04366 267.42)",
+          "oklch(83.57% 0.04366 267.42)",
+          "oklch(95.00% 0.04366 267.42)"
+        ]
+      },
+      "midnight-row-active": {
+        "role": "neutral",
+        "displayName": "Midnight row active",
+        "canonical": "#2a3550",
+        "tonalRamp": [
+          "oklch(15.00% 0.05031 266.74)",
+          "oklch(26.43% 0.05031 266.74)",
+          "oklch(37.86% 0.05031 266.74)",
+          "oklch(49.29% 0.05031 266.74)",
+          "oklch(60.71% 0.05031 266.74)",
+          "oklch(72.14% 0.05031 266.74)",
+          "oklch(83.57% 0.05031 266.74)",
+          "oklch(95.00% 0.05031 266.74)"
+        ]
+      },
+      "assistant-daylight-success": {
+        "role": "semantic",
+        "displayName": "Assistant daylight success",
+        "canonical": "#186848",
+        "tonalRamp": [
+          "oklch(15.00% 0.09185 161.63)",
+          "oklch(26.43% 0.09185 161.63)",
+          "oklch(37.86% 0.09185 161.63)",
+          "oklch(49.29% 0.09185 161.63)",
+          "oklch(60.71% 0.09185 161.63)",
+          "oklch(72.14% 0.09185 161.63)",
+          "oklch(83.57% 0.09185 161.63)",
+          "oklch(95.00% 0.09185 161.63)"
+        ]
+      },
+      "assistant-daylight-warning": {
+        "role": "semantic",
+        "displayName": "Assistant daylight warning",
+        "canonical": "#825312",
+        "tonalRamp": [
+          "oklch(15.00% 0.09773 68.88)",
+          "oklch(26.43% 0.09773 68.88)",
+          "oklch(37.86% 0.09773 68.88)",
+          "oklch(49.29% 0.09773 68.88)",
+          "oklch(60.71% 0.09773 68.88)",
+          "oklch(72.14% 0.09773 68.88)",
+          "oklch(83.57% 0.09773 68.88)",
+          "oklch(95.00% 0.09773 68.88)"
+        ]
+      },
+      "assistant-daylight-danger": {
+        "role": "semantic",
+        "displayName": "Assistant daylight danger",
+        "canonical": "#a92c43",
+        "tonalRamp": [
+          "oklch(15.00% 0.16049 15.08)",
+          "oklch(26.43% 0.16049 15.08)",
+          "oklch(37.86% 0.16049 15.08)",
+          "oklch(49.29% 0.16049 15.08)",
+          "oklch(60.71% 0.16049 15.08)",
+          "oklch(72.14% 0.16049 15.08)",
+          "oklch(83.57% 0.16049 15.08)",
+          "oklch(95.00% 0.16049 15.08)"
+        ]
+      },
+      "assistant-midnight-success": {
+        "role": "semantic",
+        "displayName": "Assistant midnight success",
+        "canonical": "#80d3ab",
+        "tonalRamp": [
+          "oklch(15.00% 0.10004 162.10)",
+          "oklch(26.43% 0.10004 162.10)",
+          "oklch(37.86% 0.10004 162.10)",
+          "oklch(49.29% 0.10004 162.10)",
+          "oklch(60.71% 0.10004 162.10)",
+          "oklch(72.14% 0.10004 162.10)",
+          "oklch(83.57% 0.10004 162.10)",
+          "oklch(95.00% 0.10004 162.10)"
+        ]
+      },
+      "assistant-midnight-warning": {
+        "role": "semantic",
+        "displayName": "Assistant midnight warning",
+        "canonical": "#edc27b",
+        "tonalRamp": [
+          "oklch(15.00% 0.10173 79.23)",
+          "oklch(26.43% 0.10173 79.23)",
+          "oklch(37.86% 0.10173 79.23)",
+          "oklch(49.29% 0.10173 79.23)",
+          "oklch(60.71% 0.10173 79.23)",
+          "oklch(72.14% 0.10173 79.23)",
+          "oklch(83.57% 0.10173 79.23)",
+          "oklch(95.00% 0.10173 79.23)"
+        ]
+      },
+      "assistant-midnight-danger": {
+        "role": "semantic",
+        "displayName": "Assistant midnight danger",
+        "canonical": "#f28b9b",
+        "tonalRamp": [
+          "oklch(15.00% 0.12590 10.60)",
+          "oklch(26.43% 0.12590 10.60)",
+          "oklch(37.86% 0.12590 10.60)",
+          "oklch(49.29% 0.12590 10.60)",
+          "oklch(60.71% 0.12590 10.60)",
+          "oklch(72.14% 0.12590 10.60)",
+          "oklch(83.57% 0.12590 10.60)",
+          "oklch(95.00% 0.12590 10.60)"
+        ]
+      },
+      "settings-daylight-success": {
+        "role": "semantic",
+        "displayName": "Settings daylight success",
+        "canonical": "#26704e",
+        "tonalRamp": [
+          "oklch(15.00% 0.09165 159.98)",
+          "oklch(26.43% 0.09165 159.98)",
+          "oklch(37.86% 0.09165 159.98)",
+          "oklch(49.29% 0.09165 159.98)",
+          "oklch(60.71% 0.09165 159.98)",
+          "oklch(72.14% 0.09165 159.98)",
+          "oklch(83.57% 0.09165 159.98)",
+          "oklch(95.00% 0.09165 159.98)"
+        ]
+      },
+      "settings-daylight-warning": {
+        "role": "semantic",
+        "displayName": "Settings daylight warning",
+        "canonical": "#8a5a0d",
+        "tonalRamp": [
+          "oklch(15.00% 0.10432 71.67)",
+          "oklch(26.43% 0.10432 71.67)",
+          "oklch(37.86% 0.10432 71.67)",
+          "oklch(49.29% 0.10432 71.67)",
+          "oklch(60.71% 0.10432 71.67)",
+          "oklch(72.14% 0.10432 71.67)",
+          "oklch(83.57% 0.10432 71.67)",
+          "oklch(95.00% 0.10432 71.67)"
+        ]
+      },
+      "settings-daylight-error": {
+        "role": "semantic",
+        "displayName": "Settings daylight error",
+        "canonical": "#b0324c",
+        "tonalRamp": [
+          "oklch(15.00% 0.16182 13.08)",
+          "oklch(26.43% 0.16182 13.08)",
+          "oklch(37.86% 0.16182 13.08)",
+          "oklch(49.29% 0.16182 13.08)",
+          "oklch(60.71% 0.16182 13.08)",
+          "oklch(72.14% 0.16182 13.08)",
+          "oklch(83.57% 0.16182 13.08)",
+          "oklch(95.00% 0.16182 13.08)"
+        ]
+      },
+      "settings-midnight-success": {
+        "role": "semantic",
+        "displayName": "Settings midnight success",
+        "canonical": "#96d6b1",
+        "tonalRamp": [
+          "oklch(15.00% 0.08358 158.55)",
+          "oklch(26.43% 0.08358 158.55)",
+          "oklch(37.86% 0.08358 158.55)",
+          "oklch(49.29% 0.08358 158.55)",
+          "oklch(60.71% 0.08358 158.55)",
+          "oklch(72.14% 0.08358 158.55)",
+          "oklch(83.57% 0.08358 158.55)",
+          "oklch(95.00% 0.08358 158.55)"
+        ]
+      },
+      "settings-midnight-warning": {
+        "role": "semantic",
+        "displayName": "Settings midnight warning",
+        "canonical": "#edc787",
+        "tonalRamp": [
+          "oklch(15.00% 0.09215 80.04)",
+          "oklch(26.43% 0.09215 80.04)",
+          "oklch(37.86% 0.09215 80.04)",
+          "oklch(49.29% 0.09215 80.04)",
+          "oklch(60.71% 0.09215 80.04)",
+          "oklch(72.14% 0.09215 80.04)",
+          "oklch(83.57% 0.09215 80.04)",
+          "oklch(95.00% 0.09215 80.04)"
+        ]
+      },
+      "settings-midnight-error": {
+        "role": "semantic",
+        "displayName": "Settings midnight error",
+        "canonical": "#ff9bb0",
+        "tonalRamp": [
+          "oklch(15.00% 0.12131 6.61)",
+          "oklch(26.43% 0.12131 6.61)",
+          "oklch(37.86% 0.12131 6.61)",
+          "oklch(49.29% 0.12131 6.61)",
+          "oklch(60.71% 0.12131 6.61)",
+          "oklch(72.14% 0.12131 6.61)",
+          "oklch(83.57% 0.12131 6.61)",
+          "oklch(95.00% 0.12131 6.61)"
+        ]
+      },
+      "popup-daylight-warning": {
+        "role": "semantic",
+        "displayName": "Popup daylight warning",
+        "canonical": "#81561f",
+        "tonalRamp": [
+          "oklch(15.00% 0.08985 69.13)",
+          "oklch(26.43% 0.08985 69.13)",
+          "oklch(37.86% 0.08985 69.13)",
+          "oklch(49.29% 0.08985 69.13)",
+          "oklch(60.71% 0.08985 69.13)",
+          "oklch(72.14% 0.08985 69.13)",
+          "oklch(83.57% 0.08985 69.13)",
+          "oklch(95.00% 0.08985 69.13)"
+        ]
+      },
+      "popup-daylight-danger": {
+        "role": "semantic",
+        "displayName": "Popup daylight danger",
+        "canonical": "#aa344e",
+        "tonalRamp": [
+          "oklch(15.00% 0.15367 11.56)",
+          "oklch(26.43% 0.15367 11.56)",
+          "oklch(37.86% 0.15367 11.56)",
+          "oklch(49.29% 0.15367 11.56)",
+          "oklch(60.71% 0.15367 11.56)",
+          "oklch(72.14% 0.15367 11.56)",
+          "oklch(83.57% 0.15367 11.56)",
+          "oklch(95.00% 0.15367 11.56)"
+        ]
+      },
+      "popup-midnight-warning": {
+        "role": "semantic",
+        "displayName": "Popup midnight warning",
+        "canonical": "#e9c88e",
+        "tonalRamp": [
+          "oklch(15.00% 0.08350 81.26)",
+          "oklch(26.43% 0.08350 81.26)",
+          "oklch(37.86% 0.08350 81.26)",
+          "oklch(49.29% 0.08350 81.26)",
+          "oklch(60.71% 0.08350 81.26)",
+          "oklch(72.14% 0.08350 81.26)",
+          "oklch(83.57% 0.08350 81.26)",
+          "oklch(95.00% 0.08350 81.26)"
+        ]
+      },
+      "popup-midnight-danger": {
+        "role": "semantic",
+        "displayName": "Popup midnight danger",
+        "canonical": "#ff9ab0",
+        "tonalRamp": [
+          "oklch(15.00% 0.12277 6.17)",
+          "oklch(26.43% 0.12277 6.17)",
+          "oklch(37.86% 0.12277 6.17)",
+          "oklch(49.29% 0.12277 6.17)",
+          "oklch(60.71% 0.12277 6.17)",
+          "oklch(72.14% 0.12277 6.17)",
+          "oklch(83.57% 0.12277 6.17)",
+          "oklch(95.00% 0.12277 6.17)"
+        ]
+      },
+      "hero-secondary-hover": {
+        "role": "primary",
+        "displayName": "Hero secondary hover",
+        "canonical": "#2f2b94",
+        "tonalRamp": [
+          "oklch(15.00% 0.16543 276.30)",
+          "oklch(26.43% 0.16543 276.30)",
+          "oklch(37.86% 0.16543 276.30)",
+          "oklch(49.29% 0.16543 276.30)",
+          "oklch(60.71% 0.16543 276.30)",
+          "oklch(72.14% 0.16543 276.30)",
+          "oklch(83.57% 0.16543 276.30)",
+          "oklch(95.00% 0.16543 276.30)"
+        ]
+      },
+      "live-control-line": {
+        "role": "primary",
+        "displayName": "Live control line",
+        "canonical": "#a7a5ed",
+        "tonalRamp": [
+          "oklch(15.00% 0.10285 284.91)",
+          "oklch(26.43% 0.10285 284.91)",
+          "oklch(37.86% 0.10285 284.91)",
+          "oklch(49.29% 0.10285 284.91)",
+          "oklch(60.71% 0.10285 284.91)",
+          "oklch(72.14% 0.10285 284.91)",
+          "oklch(83.57% 0.10285 284.91)",
+          "oklch(95.00% 0.10285 284.91)"
+        ]
+      },
+      "live-scroll-thumb": {
+        "role": "primary",
+        "displayName": "Live scroll thumb",
+        "canonical": "#b3b2ef",
+        "tonalRamp": [
+          "oklch(15.00% 0.08625 284.99)",
+          "oklch(26.43% 0.08625 284.99)",
+          "oklch(37.86% 0.08625 284.99)",
+          "oklch(49.29% 0.08625 284.99)",
+          "oklch(60.71% 0.08625 284.99)",
+          "oklch(72.14% 0.08625 284.99)",
+          "oklch(83.57% 0.08625 284.99)",
+          "oklch(95.00% 0.08625 284.99)"
+        ]
+      },
+      "live-corrected": {
+        "role": "semantic",
+        "displayName": "Live corrected",
+        "canonical": "#ffe1a9",
+        "tonalRamp": [
+          "oklch(15.00% 0.07885 82.83)",
+          "oklch(26.43% 0.07885 82.83)",
+          "oklch(37.86% 0.07885 82.83)",
+          "oklch(49.29% 0.07885 82.83)",
+          "oklch(60.71% 0.07885 82.83)",
+          "oklch(72.14% 0.07885 82.83)",
+          "oklch(83.57% 0.07885 82.83)",
+          "oklch(95.00% 0.07885 82.83)"
+        ]
+      },
+      "live-answered": {
+        "role": "semantic",
+        "displayName": "Live answered",
+        "canonical": "#b4f0ce",
+        "tonalRamp": [
+          "oklch(15.00% 0.07663 159.57)",
+          "oklch(26.43% 0.07663 159.57)",
+          "oklch(37.86% 0.07663 159.57)",
+          "oklch(49.29% 0.07663 159.57)",
+          "oklch(60.71% 0.07663 159.57)",
+          "oklch(72.14% 0.07663 159.57)",
+          "oklch(83.57% 0.07663 159.57)",
+          "oklch(95.00% 0.07663 159.57)"
+        ]
+      },
+      "live-error-line": {
+        "role": "semantic",
+        "displayName": "Live error line",
+        "canonical": "#ffb8c8",
+        "tonalRamp": [
+          "oklch(15.00% 0.08440 4.15)",
+          "oklch(26.43% 0.08440 4.15)",
+          "oklch(37.86% 0.08440 4.15)",
+          "oklch(49.29% 0.08440 4.15)",
+          "oklch(60.71% 0.08440 4.15)",
+          "oklch(72.14% 0.08440 4.15)",
+          "oklch(83.57% 0.08440 4.15)",
+          "oklch(95.00% 0.08440 4.15)"
+        ]
+      },
+      "live-error-surface": {
+        "role": "semantic",
+        "displayName": "Live error surface",
+        "canonical": "#742b50",
+        "tonalRamp": [
+          "oklch(15.00% 0.11111 351.66)",
+          "oklch(26.43% 0.11111 351.66)",
+          "oklch(37.86% 0.11111 351.66)",
+          "oklch(49.29% 0.11111 351.66)",
+          "oklch(60.71% 0.11111 351.66)",
+          "oklch(72.14% 0.11111 351.66)",
+          "oklch(83.57% 0.11111 351.66)",
+          "oklch(95.00% 0.11111 351.66)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Assistant idle greeting."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Settings hero and detail heading."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Implemented title role."
+      },
+      "memo": {
+        "displayName": "Memo",
+        "purpose": "Shared live reading prose: 18px/1.65, 17px/1.55 at ≤300px, 16px/1.6 at ≤240px; max 68ch."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Implemented body role."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Implemented label role."
+      },
+      "primary-label": {
+        "displayName": "Primary label",
+        "purpose": "Implemented primary label role."
+      },
+      "navigation": {
+        "displayName": "Navigation",
+        "purpose": "Three labeled assistant footer controls in one row, 11px/1.25."
+      },
+      "metadata": {
+        "displayName": "Metadata",
+        "purpose": "Implemented metadata role."
+      },
+      "popup-wordmark": {
+        "displayName": "Popup wordmark",
+        "purpose": "Mimo name in the popup header."
+      },
+      "popup-intro": {
+        "displayName": "Popup intro",
+        "purpose": "Implemented popup intro role."
+      },
+      "popup-source": {
+        "displayName": "Popup source",
+        "purpose": "Implemented popup source role."
+      },
+      "thought-title": {
+        "displayName": "Thought title",
+        "purpose": "Active contribution heading: 20px/600/1.4, 18px at ≤300px, 17px at ≤240px; shares the understanding heading scale."
+      },
+      "thought-body": {
+        "displayName": "Thought body",
+        "purpose": "Same scale as accepted understanding, on the shared violet ground."
+      },
+      "navigation-compact": {
+        "displayName": "Compact navigation",
+        "purpose": "The same 11px/1.25 labels and three-column row remain at native 200% (210px logical width); former two-column compact rules are superseded."
+      }
+    },
+    "shadows": [],
+    "motion": [
+      {
+        "name": "character-reaction-ease",
+        "value": "cubic-bezier(.22,.8,.3,1)",
+        "purpose": "Bounded shared raster gesture easing."
+      },
+      {
+        "name": "character-reaction",
+        "value": "800ms",
+        "purpose": "Greeting, listen, understanding, skip, stop, sources, history, reassurance, and stretch."
+      },
+      {
+        "name": "character-insight-useful",
+        "value": "1100ms",
+        "purpose": "Contribution arrival/reopen and successfully saved Useful appreciation."
+      },
+      {
+        "name": "character-settle",
+        "value": "1700ms moving; 1000ms static",
+        "purpose": "Restore the base pose after a transient reaction."
+      },
+      {
+        "name": "character-greeting-pose-change",
+        "value": "700ms",
+        "purpose": "Greeting/understanding gesture changes temporarily to curious when motion is active."
+      },
+      {
+        "name": "character-breathe",
+        "value": "4s ease-in-out 3",
+        "purpose": "Bounded listening breath; paused/cancelled when hidden or reduced."
+      },
+      {
+        "name": "character-pointer-look",
+        "value": "max 3px horizontal, 2px vertical, 3deg",
+        "purpose": "Pointer-tracked local response; reset on leave, hiding, or reduced motion."
+      },
+      {
+        "name": "character-press",
+        "value": "scale(1.08, 0.88)",
+        "purpose": "Local portrait squash while pressed; skipped under reduced motion."
+      },
+      {
+        "name": "settings-open",
+        "value": "220ms cubic-bezier(0.2, 0.8, 0.2, 1)",
+        "purpose": "Opacity/clip reveal when a selected Settings detail opens."
+      },
+      {
+        "name": "control-transition",
+        "value": "160ms ease-out",
+        "purpose": "Popup Start background/transform interactions."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "prefers-reduced-motion: reduce",
+        "purpose": "Retain static poses and controls while skipping movement. Hidden pages cancel transient animation and reset pointer state. Internal runtime modes are not exposed as a Settings preference."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "assistant-narrow-reading",
+        "value": "max-width: 300px"
+      },
+      {
+        "name": "assistant-short",
+        "value": "max-height: 560px"
+      },
+      {
+        "name": "settings-narrow-labels",
+        "value": "max-width: 280px"
+      },
+      {
+        "name": "settings-narrow-gutters",
+        "value": "max-width: 400px"
+      },
+      {
+        "name": "settings-wide-spacing",
+        "value": "min-width: 640px"
+      },
+      {
+        "name": "upper-edge-small",
+        "value": "max-width: 240px"
+      }
+    ],
+    "assets": [
+      {
+        "name": "Canonical mint jelly identity and fallback",
+        "path": "public/memo/memo-slime.png",
+        "type": "production PNG",
+        "dimensions": "1254 x 1254",
+        "colorMode": "RGBA",
+        "transparent": true,
+        "generation": "Built-in image_gen.imagegen tool",
+        "promptMetadataKey": "impeccable:prompt",
+        "promptRecord": "docs/design-assets/memo-slime.prompt.json",
+        "sha256": "6fd8942db707e40757ef43f9c3007a8f7ce2f1dca12cc4aba0ec55996def0eed",
+        "usage": [
+          "assistant/popup/Settings artwork failure fallback",
+          "manifest icons 16/48/128 scaled by Chrome"
+        ],
+        "guardrail": "Animate the real PNG. Keep developer strategy/direction contracts out of browser assets."
+      },
+      {
+        "name": "Mimo eight-pose sheet",
+        "path": "public/mimo/mimo-expressions.png",
+        "type": "production PNG sprite sheet",
+        "dimensions": "1774 x 887",
+        "colorMode": "RGBA",
+        "transparent": true,
+        "generation": "Built-in image_gen.imagegen tool",
+        "promptMetadataKey": "impeccable:prompt",
+        "promptRecord": "docs/design-assets/mimo-expressions.prompt.json",
+        "sha256": "1610274fbfbae7d38a4a8e9ad026b81936329ff31b5c8e2258d6f5f9f93e40bf",
+        "grid": {
+          "columns": 4,
+          "rows": 2
+        },
+        "poses": [
+          "idle",
+          "listening",
+          "thinking",
+          "insight",
+          "appreciation",
+          "curious",
+          "rest",
+          "reassure"
+        ],
+        "usage": [
+          "assistant idle and upper-seam companion",
+          "popup greeting and recording",
+          "Settings portrait and readiness"
+        ],
+        "guardrail": "Preserve canonical identity, alpha, pose order, and fallback; do not approximate the production raster in component previews."
+      }
+    ],
+    "legacySourceRules": {
+      "scope": "Superseded separate-stage, bubble, separate thought panel, and two-column compact-footer CSS remains in assistant.css; assistant-upper.css owns the approved current layout. These older rules are not current guidance.",
+      "tokens": [
+        "midnight-bubble",
+        "midnight-bubble-muted"
+      ],
+      "shadow": "0 12px 36px rgba(0, 0, 0, 0.22)"
+    },
+    "containerQueries": [
+      {
+        "name": "mimo-settings",
+        "type": "inline-size",
+        "hosts": [
+          "#overview",
+          "#detail"
+        ],
+        "query": "max-width: 240px",
+        "purpose": "Place portrait/name in a separate normal-flow row at actual available inline width, including CSS zoom. The row follows source DOM order; showScreen appends the shared brand to the selected header, so Privacy & help precedes its portrait/name row."
+      }
+    ],
+    "upperEdgeCompanion": {
+      "source": "public/assistant-upper.css",
+      "placement": "Upper seam on Live memo only; clock and independent icon-only Stop form a tight unboxed row directly beneath the visible body inside one aside.",
+      "sizes": "Full artwork: 88px ordinary; 80px at ≤300px; 64px at ≤240px. Original visible art coordinates and gestures retained.",
+      "surfaceMargins": "48px 16px 16px; 44px 12px 12px at ≤300px; top 36px at ≤240px",
+      "reservedInset": "100px ordinary and at ≤300px; 88px at ≤240px",
+      "focus": "2px solid #fff outline, 3px offset, 0 0 0 5px #252b45 box shadow",
+      "cue": "Visually hidden, aria-live retained.",
+      "badge": "18px round badge, 4px padding, top 4px/right 6px near the tuft",
+      "stop": "Independent 44×44px target with authored 18px SVG stop icon and accessible recording/save action name at every width. Transparent outer target; 26px circular pseudo-element at top/left 0 supplies hover fill and white 2px/3px-offset focus outline. No enclosing capsule, fill, border, or shadow around the row.",
+      "utilityViews": "Transcript, Settings, and history hide the Live companion and clock/Stop; labeled Live memo tab reaches recording controls. Contribution publication remains summary-only.",
+      "embeddedSettings": "Settings uses its normal portrait. Existing same-origin MIMO_HOST_COMPANION message reports Live companion absent on Settings.",
+      "targets": "88×76px ordinary; 80×68px at ≤300px; 64×54px at ≤240px. Only transparent top target space is trimmed; visible pose/fallback bodies remain inside.",
+      "clock": "12px tabular numerals, 4px top padding, 5px dot gap; row translated 9px horizontally to center the 26px painted Stop with the clock."
+    }
+  },
+  "components": [
+    {
+      "name": "Primary action",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Content-sized Settings action with explicit hover, active, and focus states.",
+      "html": "<button class=\"ds-primary\">Save connection</button>",
+      "css": ".ds-primary{font-family:-apple-system,BlinkMacSystemFont,\"Segoe UI\",sans-serif;min-height:44px;padding:11px 18px;border:0;border-radius:10px;background:var(--action,#3859cb);color:var(--action-ink,#fff);font-size:13px;font-weight:600;cursor:pointer}.ds-primary:hover{background:var(--action-hover,#2f4cba)}.ds-primary:active{background:var(--action-active,#2841a2);transform:translateY(1px)}.ds-primary:focus-visible{outline:2px solid var(--focus,#3859cb);outline-offset:3px;}@media(prefers-reduced-motion:reduce){.ds-primary:active{transform:none}}"
+    },
+    {
+      "name": "Secondary action",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Quiet recovery or supporting Settings action.",
+      "html": "<button class=\"ds-secondary\">Try again</button>",
+      "css": ".ds-secondary{font-family:-apple-system,BlinkMacSystemFont,\"Segoe UI\",sans-serif;min-height:44px;padding:11px 18px;border:0;border-radius:10px;background:var(--secondary-surface,#edf0ff);color:var(--ink,#252b45);font-size:13px;font-weight:600;cursor:pointer}.ds-secondary:hover,.ds-secondary:active{background:var(--row-active,#e8edfc)}.ds-secondary:active{transform:translateY(1px)}.ds-secondary:focus-visible{outline:2px solid var(--focus,#3859cb);outline-offset:3px;}@media(prefers-reduced-motion:reduce){.ds-secondary:active{transform:none}}"
+    },
+    {
+      "name": "Labeled input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Native Settings field with a visible label and strong control border.",
+      "html": "<label class=\"ds-field\">Connection key<input class=\"ds-input\" type=\"password\" placeholder=\"Enter your key\" /></label>",
+      "css": ".ds-field{font-family:-apple-system,BlinkMacSystemFont,\"Segoe UI\",sans-serif;display:block;color:var(--ink,#252b45);font-size:14px;line-height:1.55;font-weight:550}.ds-input{display:block;width:100%;min-height:46px;margin-top:8px;padding:12px 14px;border:1px solid var(--control-line,#aeb9d1);border-radius:10px;background:var(--panel,#fff);color:var(--ink,#252b45);font:inherit;font-weight:400;caret-color:var(--focus,#3859cb)}.ds-input::placeholder{color:var(--placeholder,#65708a);opacity:1}.ds-input:focus-visible{outline:2px solid var(--focus,#3859cb);outline-offset:3px;}.ds-input[aria-invalid=true]{border-color:var(--error,#b0324c)}"
+    },
+    {
+      "name": "Labeled navigation",
+      "kind": "nav",
+      "refersTo": "navigation",
+      "description": "Stable Live memo, Transcript, and Settings destinations during live/retained reading; Settings remains labeled and idempotent. Idle Settings returns inside its overview hero; details keep their own return.",
+      "html": "<nav class=\"ds-nav\" aria-label=\"Assistant\"><button class=\"ds-nav-item\" aria-pressed=\"true\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M4 10v4m5-8v12m6-15v18m5-11v4\"/></svg><span>Live memo</span></button><button class=\"ds-nav-item\" aria-pressed=\"false\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M7 3h8l4 4v14H5V3h2Zm8 0v5h4M8 12h8M8 16h6\"/></svg><span>Transcript</span></button><button class=\"ds-nav-item\" aria-pressed=\"false\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M4 7h16M4 17h16\"/><circle cx=\"9\" cy=\"7\" r=\"3\"/><circle cx=\"15\" cy=\"17\" r=\"3\"/></svg><span>Settings</span></button></nav>",
+      "css": ".ds-nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:3px;background:var(--surface,#f5f6fc);padding:6px}.ds-nav-item{font-family:-apple-system,BlinkMacSystemFont,\"Segoe UI\",sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;width:100%;min-width:0;min-height:52px;padding:5px 4px;border:1px solid transparent;border-radius:12px;background:transparent;color:var(--muted,#65708a);font-size:11px;line-height:1.25;cursor:pointer}.ds-nav-item span{max-width:100%;white-space:nowrap;overflow-wrap:normal}.ds-nav-item svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}.ds-nav-item:hover{background:var(--soft,#eceffa);color:var(--ink,#252b45)}.ds-nav-item:active{background:var(--tint,#edf0ff)}.ds-nav-item[aria-pressed=true]{background:var(--tint,#edf0ff);color:var(--accent,#3859cb)}.ds-nav-item:focus-visible{outline:2px solid var(--accent,#3859cb);outline-offset:3px}"
+    },
+    {
+      "name": "Kind and evidence markers",
+      "kind": "chip",
+      "refersTo": "kind-tag",
+      "description": "Contribution kind and separate epistemic marker.",
+      "html": "<div class=\"ds-tags\"><span class=\"ds-kind\">Clarification</span><span class=\"ds-marker\">Interpretation</span></div>",
+      "css": ".ds-tags{font-family:-apple-system,BlinkMacSystemFont,\"Segoe UI\",sans-serif;display:flex;flex-wrap:wrap;gap:6px;align-items:center}.ds-kind{padding:4px 8px;border-radius:6px;background:var(--tint,#edf0ff);color:var(--accent,#3859cb);font-size:11px;line-height:1.5;text-transform:capitalize}.ds-marker{padding:3px 7px;border:1px solid var(--line,#dce1ef);border-radius:5px;color:var(--muted,#65708a);font-size:11px;line-height:1.5}"
+    },
+    {
+      "name": "Current understanding",
+      "kind": "card",
+      "refersTo": "current-understanding",
+      "description": "Understanding text inside the shared violet reading surface; the production upper-seam raster is recorded in assets, not approximated here.",
+      "html": "<section class=\"ds-memo\"><h2>Current understanding</h2><p class=\"ds-memo-body\">The team is deciding how to test the next release.</p><div class=\"ds-memo-footer\"><span>Updated 10:24</span><button>Sources</button></div></section>",
+      "css": ".ds-memo{font-family:-apple-system,BlinkMacSystemFont,\"Segoe UI\",sans-serif;padding:100px 24px 20px;border-radius:16px;background:#4643ce;color:#fff;overflow-wrap:anywhere}.ds-memo h2{margin:0 0 16px;font-size:20px;font-weight:600;line-height:1.4;letter-spacing:-.025em}.ds-memo-body{max-width:68ch;margin:0;font-size:18px;font-weight:400;line-height:1.65;white-space:pre-wrap}.ds-memo-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:20px;color:#e5e5ff;font-size:11px;line-height:1.5}.ds-memo-footer button{font:inherit;font-size:12px;min-height:44px;padding:8px 10px;border:1px solid #a7a5ed;border-radius:8px;background:transparent;color:#fff;cursor:pointer}.ds-memo-footer button:hover{text-decoration:underline;text-underline-offset:3px}.ds-memo-footer button:focus-visible{outline:2px solid #fff;outline-offset:3px}@media(max-width:300px){.ds-memo{padding:100px 16px 20px}.ds-memo h2{font-size:18px;margin-bottom:12px}.ds-memo-body{font-size:17px;line-height:1.55}}@media(max-width:240px){.ds-memo{padding-top:88px}.ds-memo h2{font-size:17px}.ds-memo-body{font-size:16px;line-height:1.6}}"
+    },
+    {
+      "name": "Focused contribution",
+      "kind": "custom",
+      "refersTo": "contribution-focus",
+      "description": "The active contribution uses the same violet slab and prose scale as understanding, with inverse Useful/Skip responses.",
+      "html": "<section class=\"ds-thought\" aria-label=\"Additional contribution\"><div class=\"ds-thought-scroll\"><h2>Clarify the success measure</h2><p>Which result would tell the team that this test is useful?</p><span class=\"ds-thought-meta\">Relevant to the current discussion</span><div class=\"ds-thought-response\"><button class=\"ds-useful\" aria-pressed=\"false\"><svg viewBox=\"0 0 20 20\" aria-hidden=\"true\"><path d=\"m4 10 4 4 8-8\"/></svg>Useful</button><button class=\"ds-skip\">Skip</button><details class=\"ds-more\"><summary>More</summary><button class=\"ds-thought-action\">Not helpful</button><button class=\"ds-thought-action\">Dismiss</button></details></div></div></section>",
+      "css": ".ds-thought{font-family:-apple-system,BlinkMacSystemFont,\"Segoe UI\",sans-serif;display:flex;flex-direction:column;padding-top:100px;border:0;border-radius:16px;background:#4643ce;color:#fff;overflow:hidden}.ds-thought-scroll{min-height:0;overflow:auto;overscroll-behavior:contain;padding:0 24px 20px}.ds-thought h2{margin:0 0 16px;font-size:20px;font-weight:600;line-height:1.4;letter-spacing:-.025em}.ds-thought p{max-width:68ch;margin:0;font-size:18px;line-height:1.65;white-space:pre-wrap;overflow-wrap:anywhere}.ds-thought-meta{display:block;margin-top:8px;color:#e5e5ff;font-size:12px;line-height:1.55}.ds-thought-response{display:flex;align-items:center;flex-wrap:wrap;gap:8px 12px;padding-top:10px;margin-top:6px;border-top:1px solid #a7a5ed}.ds-useful,.ds-skip{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-width:44px;min-height:44px;padding:10px 16px;border:0;border-radius:9px;background:#fff;color:#3734ae;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer}.ds-useful svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.ds-useful:hover{filter:brightness(1.08)}.ds-skip{padding-inline:14px;background:#3734ae;color:#fff;font-weight:400}.ds-skip:hover{background:#2f2b94}.ds-more{margin-inline-start:auto;color:#e5e5ff;font-size:12px}.ds-more summary{min-height:40px;padding:10px 2px;cursor:pointer}.ds-more[open]{width:100%;margin:4px 0 0}.ds-thought-action{min-height:44px;margin-inline-end:20px;padding:6px 0;border:0;background:transparent;color:#fff;font:inherit;cursor:pointer}.ds-thought-action:hover{text-decoration:underline}.ds-thought button:focus-visible,.ds-more summary:focus-visible{outline:2px solid #fff;outline-offset:3px}@media(max-width:300px){.ds-thought{padding-top:100px}.ds-thought-scroll{padding-inline:16px;padding-bottom:16px}.ds-thought h2{font-size:18px;margin-bottom:8px}.ds-thought p{font-size:17px;line-height:1.55}.ds-thought-response{gap:6px 8px}.ds-useful,.ds-skip{padding-inline:8px;font-size:12px}}@media(max-width:240px){.ds-thought{padding-top:88px}.ds-thought h2{font-size:17px}.ds-thought p{font-size:16px;line-height:1.6}.ds-useful svg{display:none}}"
+    },
+    {
+      "name": "Grouped Settings row",
+      "kind": "card",
+      "refersTo": "settings-list",
+      "description": "Bordered task group with status text and a chevron. Session history is a secondary overview row when the embedded host has content; History Back restores focus there.",
+      "html": "<div class=\"ds-list\"><button class=\"ds-row\"><span class=\"ds-row-label\">Microphone</span><span class=\"ds-row-end\">Allowed<svg viewBox=\"0 0 20 20\" aria-hidden=\"true\"><path d=\"m8 5 5 5-5 5\"/></svg></span></button><button class=\"ds-row\"><span class=\"ds-row-label\">AI connection</span><span class=\"ds-row-end\">Saved<svg viewBox=\"0 0 20 20\" aria-hidden=\"true\"><path d=\"m8 5 5 5-5 5\"/></svg></span></button></div>",
+      "css": ".ds-list{font-family:-apple-system,BlinkMacSystemFont,\"Segoe UI\",sans-serif;overflow:hidden;border:1px solid var(--line,#dce1ef);border-radius:16px;background:var(--panel,#fff)}.ds-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:12px;width:100%;min-height:66px;padding:16px;border:0;border-bottom:1px solid var(--line,#dce1ef);background:transparent;color:var(--ink,#252b45);text-align:start;font:inherit;line-height:1.5;cursor:pointer}.ds-row:last-child{border-bottom:0}.ds-row:hover{background:var(--row-hover,#f1f3fd)}.ds-row:active{background:var(--row-active,#e8edfc)}.ds-row:focus-visible{outline:2px solid var(--focus,#3859cb);outline-offset:-4px}.ds-row-label{font-size:13px;font-weight:550}.ds-row-end{display:flex;align-items:center;gap:6px;color:var(--muted,#65708a);font-size:11px}.ds-row svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}"
+    },
+    {
+      "name": "Settings overview return",
+      "kind": "nav",
+      "refersTo": "settings-hero",
+      "description": "Idle embedded overview heading control only: one 44px icon-only return before Settings. At container width ≤240px the visible return pairs with a 24px title. The full surface retains its production portrait and readiness; details keep their existing return.",
+      "html": "<div class=\"ds-settings-overview\"><div class=\"ds-settings-hero\"><div class=\"ds-settings-heading\"><button class=\"ds-settings-return\" type=\"button\" aria-label=\"Back to Mimo\" title=\"Back to Mimo\"><svg viewBox=\"0 0 20 20\" aria-hidden=\"true\"><path d=\"M16 10H4m5-5-5 5 5 5\"/></svg></button><h1>Settings</h1></div></div></div>",
+      "css": ".ds-settings-overview{container-type:inline-size;container-name:ds-settings-overview;font-family:-apple-system,BlinkMacSystemFont,\"Segoe UI\",sans-serif}.ds-settings-hero{padding:22px;border-radius:16px;background:#4643ce;color:#fff}.ds-settings-heading{display:flex;align-items:center;gap:8px}.ds-settings-heading h1{min-width:0;margin:0;font-size:27px;font-weight:650;line-height:1.25;letter-spacing:-.03em;text-wrap:balance}.ds-settings-return{display:inline-flex;align-items:center;justify-content:center;flex:0 0 44px;width:44px;height:44px;padding:10px;border:0;border-radius:10px;background:transparent;color:#fff;cursor:pointer}.ds-settings-return svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.ds-settings-return:hover:enabled{background:#3734ae}.ds-settings-return:focus-visible{outline:2px solid #fff;outline-offset:3px}@media(prefers-reduced-motion:no-preference){.ds-settings-return{transition:background-color 160ms ease-out}}@container ds-settings-overview (max-width:240px){.ds-settings-hero{padding:16px}.ds-settings-heading{gap:4px}.ds-settings-heading:has(.ds-settings-return:not([hidden])) h1{font-size:24px}}"
+    },
+    {
+      "name": "Popup Start listening",
+      "kind": "button",
+      "refersTo": "popup-start",
+      "description": "Separate full-width action beneath the popup’s interactive character.",
+      "html": "<div class=\"ds-popup-stage\"><button class=\"ds-popup-start\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><rect x=\"8\" y=\"3\" width=\"8\" height=\"12\" rx=\"4\"/><path d=\"M5 11v1a7 7 0 0 0 14 0v-1M12 19v3m-4 0h8\"/></svg>Start listening</button></div>",
+      "css": ".ds-popup-stage{padding:20px;border-radius:16px;background:var(--live-field,#4643ce)}.ds-popup-start{font-family:-apple-system,BlinkMacSystemFont,\"Segoe UI\",sans-serif;display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:46px;padding:12px 16px;border:0;border-radius:12px;background:var(--live-action,#f0efff);color:var(--live-field,#4643ce);font-size:15px;font-weight:600;line-height:1.25;cursor:pointer;transition:background-color 160ms ease-out,transform 160ms ease-out}.ds-popup-start svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.ds-popup-start:hover{transform:translateY(-2px)}.ds-popup-start:active{transform:scale(.97)}.ds-popup-start:focus-visible{outline:2px solid var(--live-ink,#fff);outline-offset:4px}@media(prefers-reduced-motion:reduce){.ds-popup-start{transition:none}.ds-popup-start:hover,.ds-popup-start:active{transform:none}}"
+    },
+    {
+      "name": "Unboxed recording controls",
+      "kind": "custom",
+      "refersTo": "session-controls",
+      "description": "Live memo only: real elapsed time and a disjoint 44px Stop target beneath the visible Mimo body; hover/focus paint is a 26px circle.",
+      "html": "<div class=\"ds-recording\" aria-label=\"Recording controls\"><span class=\"ds-elapsed\"><span class=\"ds-dot\" aria-hidden=\"true\"></span><span>08:24</span></span><button class=\"ds-stop\" aria-label=\"Stop recording and save audio\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><rect x=\"7\" y=\"7\" width=\"10\" height=\"10\" rx=\"1\"/></svg></button></div>",
+      "css": ".ds-recording{font-family:-apple-system,BlinkMacSystemFont,\"Segoe UI\",sans-serif;display:inline-flex;align-items:center;gap:0;padding:0;border:0;border-radius:0;box-shadow:none;color:#fff;background:transparent;transform:translateX(9px)}.ds-elapsed{display:flex;align-items:center;align-self:flex-start;gap:5px;padding:4px 0 0;margin:0;color:#e5e5ff;font-size:12px;font-variant-numeric:tabular-nums;white-space:nowrap}.ds-dot{width:5px;height:5px;border-radius:50%;background:#ffb8c8}.ds-stop{position:relative;display:inline-flex;align-items:flex-start;justify-content:flex-start;flex:0 0 auto;width:44px;height:44px;min-width:44px;min-height:44px;margin:0;padding:4px 0 0 4px;border:0;border-radius:50%;background:transparent;color:#fff;cursor:pointer}.ds-stop svg{position:relative;z-index:1;width:18px;height:18px;fill:currentColor}.ds-stop::before{content:\"\";position:absolute;top:0;left:0;width:26px;height:26px;border-radius:50%;background:transparent;pointer-events:none}.ds-stop:hover:enabled{background:transparent}.ds-stop:hover:enabled::before{background:#3734ae}.ds-stop:focus-visible{outline:none}.ds-stop:focus-visible::before{outline:2px solid #fff;outline-offset:3px}@media(forced-colors:active){.ds-recording,.ds-elapsed,.ds-stop{color:CanvasText}}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Stay with the conversation",
+    "overview": "Mimo gives accepted understanding a vivid, stable place to read. Saturated violet anchors the family; pale periwinkle or midnight surfaces keep supporting tasks legible. The original mint jelly identity adds a friendly, tactile presence through transparent artwork, expressive poses, and bounded squash and stretch.\n\nNative system type and direct controls suit sustained listening and reading in Chrome. Expression belongs to Mimo and short interaction responses. Accepted text stays still while the companion acknowledges a real change. The Daylight and Midnight world continues from the preceding frontend; the reviewed Mimo 0.12.2 source candidate retains understanding and the active contribution on the same violet reading ground, with Mimo on its upper seam and unboxed recording controls directly below the character on Live memo.",
+    "keyCharacteristics": [
+      "A constant violet reading field for understanding and the active contribution in Daylight and Midnight.",
+      "One reading space: understanding is home; an additional thought replaces it while being read.",
+      "A transparent mint jelly identity with eight shared production poses and a canonical fallback.",
+      "System sans, labeled navigation, and reachable recording controls.",
+      "Bounded event-driven motion with reduced-motion and visibility safeguards."
+    ],
+    "rules": [
+      {
+        "name": "The Stable Reading Rule",
+        "body": "Preserve accepted text, reading position, and keyboard focus during updates to the current reading view. Put the visible acknowledgement on Mimo.",
+        "section": "typography"
+      },
+      {
+        "name": "The One Return per Level Rule",
+        "body": "In Settings, show the return for the current level inside its content. Idle embedded overview has one icon-only Back to Mimo immediately before Settings; details keep only their existing Back to Settings. Active Settings uses the stable footer tabs, and standalone Settings has no host-return or history affordance.",
+        "section": "components"
+      },
+      {
+        "name": "The Contribution Rule",
+        "body": "A contribution temporarily owns the reading space. Useful, Skip, Mimo, or Escape returns to the latest understanding.",
+        "section": "components"
+      },
+      {
+        "name": "The Real Change Rule",
+        "body": "React to actual accepted state, recording state, source/history navigation, recovery, or direct character interaction. Repeated snapshots stay quiet.",
+        "section": "components"
+      }
+    ],
+    "dos": [
+      "Do use the shared Daylight and Midnight palette across popup, assistant, and Settings.",
+      "Do keep the shared violet reading field and inverse text consistent across both themes.",
+      "Do use the shared Mimo pose sheet with its canonical fallback and preserve transparent contours and provenance.",
+      "Do preserve independent accepted state, source return, feedback, reading position, and keyboard focus.",
+      "Do keep the unboxed real duration and separate icon-only Stop directly beneath Mimo on Live memo, with a 44px Stop target and stable labeled tabs.",
+      "Do keep core actions usable with reduced motion or failed artwork."
+    ],
+    "donts": [
+      "Don't revive the retired Listen wordmark, rounded-square mascot substitute, activity strip, or update banners on the live reading surface.",
+      "Don't stack a contribution beneath understanding or overlay it as a speech bubble in the current live surface.",
+      "Don't move accepted text or steal focus from a control that remains visible merely to announce an update.",
+      "Don't use character motion as an audio-level meter or an unbounded processing spinner.",
+      "Don't generate whole-session minutes when Stop is pressed."
+    ]
+  }
+}

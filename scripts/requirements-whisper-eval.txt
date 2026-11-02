@@ -1,0 +1,4 @@
+# Local evaluation only; install into artifacts/whisper-eval-python.
+jiwer==4.0.0
+rapidfuzz==3.14.6
+click==8.5.0

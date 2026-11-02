@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Memo Replay Lab</title>
+    <link rel="stylesheet" href="replay.css" />
+  </head>
+  <body>
+    <header class="lab-header">
+      <div class="identity">
+        <img src="memo/memo-slime.png" width="52" height="52" alt="" />
+        <div>
+          <h1>Replay Lab</h1>
+          <p>One recording. A fresh run each time.</p>
+        </div>
+      </div>
+      <a href="setup.html" target="_blank" rel="noopener">AI settings</a>
+    </header>
+    <main class="workspace">
+      <section class="source-panel" aria-labelledby="source-heading">
+        <h2 id="source-heading">Choose your audio</h2>
+        <p class="intro">
+          Play a recording through Memo at its original speed. The microphone stays off.
+        </p>
+        <label class="file-picker" for="audio-file"
+          ><span>Choose an audio file</span
+          ><small>WAV, WebM, MP3, or another format Chrome can play. Up to 128 MiB.</small
+          ><input id="audio-file" type="file" accept="audio/*,.webm"
+        /></label>
+        <label for="source-select">Saved recordings</label>
+        <select id="source-select">
+          <option value="">Choose a recording first</option>
+        </select>
+        <p id="source-info" class="source-info">
+          The original file is kept locally for repeat runs.
+        </p>
+        <label class="check"
+          ><input id="monitor-audio" type="checkbox" />Hear the recording while it runs</label
+        >
+        <p class="provider-note">
+          Start sends audio windows and conversation context to your configured ASR and AI services.
+          Provider charges may apply.
+        </p>
+        <div class="run-controls">
+          <button id="start-replay" class="primary" disabled>Start replay</button
+          ><button id="stop-replay" disabled>Stop</button
+          ><button id="repeat-replay" disabled>Repeat</button>
+        </div>
+        <p id="error" class="error" role="alert" hidden></p>
+        <div class="playback">
+          <div>
+            <strong id="run-status" role="status">Ready</strong
+            ><time id="source-position">00:00 / 00:00</time>
+          </div>
+          <progress
+            id="source-progress"
+            max="1"
+            value="0"
+            aria-label="Recording playback"
+          ></progress>
+          <p id="run-detail">
+            Start when you are ready. Opening the lab does not play or send audio.
+          </p>
+        </div>
+      </section>
+      <section class="memo-panel" aria-labelledby="memo-heading">
+        <div class="panel-heading">
+          <h2 id="memo-heading">Memo, live</h2>
+          <span>The extension’s actual interface</span>
+        </div>
+        <iframe
+          id="memo-frame"
+          src="assistant.html?replay=1"
+          title="Live Memo extension"
+          allow="autoplay"
+        ></iframe>
+      </section>
+      <section class="timeline-panel" aria-labelledby="timeline-heading">
+        <div class="panel-heading">
+          <h2 id="timeline-heading">What happened</h2>
+          <span id="event-count">No events yet</span>
+        </div>
+        <label for="run-select">Inspect a run</label
+        ><select id="run-select">
+          <option value="">No runs yet</option>
+        </select>
+        <p class="history-note">
+          The Memo panel shows the latest session. Select an earlier run to inspect its evidence
+          below.
+        </p>
+        <div class="timeline-tools">
+          <label for="event-filter">Show</label
+          ><select id="event-filter">
+            <option value="all">Changes across stages</option>
+            <option value="audio">Audio and position samples</option>
+            <option value="transcript">Transcript</option>
+            <option value="ai">AI requests and decisions</option>
+            <option value="display">Extension display and interactions</option>
+            <option value="error">Errors</option></select
+          ><button id="export-run" disabled>Export report</button
+          ><button id="export-json" disabled>JSON</button>
+        </div>
+        <p id="report-warning" class="error" hidden></p>
+        <p id="timeline-empty" class="empty">
+          Your run will appear here: audio progress, transcript arrivals, AI decisions, and what
+          Memo displayed.
+        </p>
+        <div id="event-list" class="event-list"></div>
+        <button id="more-events" hidden>Show 50 more events</button>
+        <p class="evidence-note">
+          Audio position and elapsed time are recorded separately. Display events describe DOM
+          changes and visibility estimates; screenshots are needed to verify browser paint.
+        </p>
+      </section>
+    </main>
+    <footer class="lab-footer">
+      <span id="build-info">Research build</span
+      ><span>Playback 1×. Repeat clears the conversation context. No automatic MOM.</span>
+    </footer>
+    <script type="module" src="replay-lab.js"></script>
+  </body>
+</html>

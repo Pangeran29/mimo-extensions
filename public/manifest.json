@@ -1,0 +1,29 @@
+{
+  "manifest_version": 3,
+  "name": "Mimo \u2014 Live Audio Companion",
+  "description": "Meet Mimo: follow the current conversation, explore useful contributions, and record tab and microphone audio.",
+  "version": "0.12.2",
+  "minimum_chrome_version": "116",
+  "permissions": ["activeTab", "tabCapture", "offscreen", "downloads", "storage", "sidePanel"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Mimo"
+  },
+  "background": {
+    "service_worker": "worker.js",
+    "type": "module"
+  },
+  "options_page": "setup.html",
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'none'; connect-src 'self' http://127.0.0.1:8787 https://hpop.ai; worker-src 'self'"
+  },
+  "icons": {
+    "16": "memo/memo-slime.png",
+    "48": "memo/memo-slime.png",
+    "128": "memo/memo-slime.png"
+  },
+  "host_permissions": ["https://hpop.ai/*", "http://127.0.0.1:8787/*"],
+  "side_panel": {
+    "default_path": "assistant.html"
+  }
+}

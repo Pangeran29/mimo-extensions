@@ -1,0 +1,608 @@
+/* Mimo owns the reading surface; unboxed session controls sit at the character's feet. */
+#mimo-reading-surface {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  min-height: 0;
+  margin: 48px 16px 16px;
+  padding-top: 100px;
+  border-radius: 16px;
+  background: var(--surface);
+  color: var(--ink);
+}
+body:not(.settings-open)[data-detail='summary'] #mimo-reading-surface {
+  --thought: #4643ce;
+  --thought-ink: #fff;
+  --thought-muted: #e5e5ff;
+  background: #4643ce;
+  color: #fff;
+}
+#mimo-reading-surface:has(#memo-companion[hidden]) {
+  margin-top: 16px;
+  padding-top: 0;
+}
+#mimo-reading-surface #assistant-view {
+  flex: 1 1 0;
+  min-height: 0;
+}
+#mimo-reading-surface #analysis-view {
+  flex: 1 1 0;
+  min-height: 0;
+}
+#mimo-reading-surface #memo-companion {
+  --mimo-art-size: 88px;
+  position: absolute;
+  top: -28px;
+  bottom: auto;
+  left: 18px;
+  right: auto;
+  width: 104px;
+  height: 120px;
+  min-height: 0;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0;
+  flex: none;
+  z-index: 2;
+}
+#mimo-reading-surface #memo-character {
+  width: 88px;
+  height: 76px;
+  min-width: 44px;
+  min-height: 44px;
+  flex: 0 0 76px;
+  padding: 0;
+  border-radius: 16px;
+}
+#mimo-reading-surface #memo-character .mimo-portrait {
+  /* Keep the full artwork and gesture clearance; trim only the empty hit-box space. */
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: var(--mimo-art-size);
+}
+#mimo-reading-surface #memo-character .mimo-portrait > .mimo-fallback {
+  top: 6px;
+  bottom: auto;
+}
+#mimo-reading-surface #memo-character:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+  box-shadow: 0 0 0 5px #252b45;
+}
+#mimo-reading-surface .memo-contribution-hint {
+  width: 18px;
+  height: 18px;
+  padding: 4px;
+  top: 4px;
+  right: 6px;
+  bottom: auto;
+  border-radius: 50%;
+}
+#mimo-reading-surface #mimo-cue {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  min-height: 0;
+  max-width: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+#mimo-session-controls {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  flex: 0 0 auto;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  color: #fff;
+  background: transparent;
+  /* Optically center the 26px painted Stop circle within its 44px target. */
+  transform: translateX(9px);
+}
+#mimo-session-controls #recording-status {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 0 0;
+  margin: 0;
+  align-self: flex-start;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: #e5e5ff;
+  white-space: nowrap;
+}
+#mimo-session-controls #record-dot {
+  width: 5px;
+  height: 5px;
+  flex: 0 0 5px;
+  background: #ffb8c8;
+}
+#mimo-session-controls #session-time {
+  color: #e5e5ff;
+}
+#mimo-session-controls #stop {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 4px 0 0 4px;
+  display: inline-flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 4px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #fff;
+  font-size: 12px;
+}
+#mimo-session-controls #stop svg {
+  position: relative;
+  z-index: 1;
+  width: 18px;
+  height: 18px;
+}
+#mimo-session-controls #stop::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: transparent;
+  pointer-events: none;
+}
+#mimo-session-controls #stop:hover:enabled {
+  background: transparent;
+}
+#mimo-session-controls #stop:hover:enabled::before {
+  background: #3734ae;
+}
+#mimo-session-controls #stop:focus-visible {
+  outline: none;
+}
+#mimo-session-controls #stop:focus-visible::before {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+#mimo-reading-surface #analysis-panel {
+  padding: 0 24px 20px;
+  overflow-y: auto;
+}
+#mimo-reading-surface #summary-feed {
+  padding: 0;
+}
+#mimo-reading-surface .current-memo {
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  color: inherit;
+  box-shadow: none;
+}
+#mimo-reading-surface .current-memo h2,
+#mimo-reading-surface .contribution-heading h2 {
+  margin: 0 0 16px;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: -0.025em;
+}
+#mimo-reading-surface #summary-feed .current-memo .live-body,
+#mimo-reading-surface .mimo-thought .live-body {
+  color: #fff;
+  font-size: 18px;
+  line-height: 1.65;
+  font-weight: 400;
+  max-width: 68ch;
+}
+#mimo-reading-surface .current-memo .live-meta,
+#mimo-reading-surface .current-memo .text-button {
+  color: #e5e5ff;
+}
+#mimo-reading-surface .current-memo .text-button {
+  min-height: 44px;
+  padding: 8px 10px;
+  border: 1px solid #a7a5ed;
+  border-radius: 8px;
+  color: #fff;
+}
+#mimo-reading-surface #contribution-view {
+  padding: 0;
+  flex: 1 1 0;
+  min-height: 0;
+}
+#mimo-reading-surface #memo-bubble {
+  flex: 1 1 0;
+  min-height: 0;
+  max-height: none;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #fff;
+}
+#mimo-reading-surface .thought-toolbar {
+  display: none;
+}
+#mimo-reading-surface .memo-bubble-scroll {
+  flex: 1 1 0;
+  min-height: 0;
+  max-height: none;
+  overflow-y: auto;
+  padding: 0 24px 20px;
+  border-radius: 0;
+}
+#mimo-reading-surface .mimo-thought .live-contribution {
+  border: 0;
+  padding: 0;
+}
+#mimo-reading-surface .contribution-heading {
+  margin: 0;
+}
+#mimo-reading-surface .contribution-title {
+  margin: 0;
+}
+#mimo-reading-surface .mimo-thought .live-meta,
+#mimo-reading-surface .mimo-thought .contribution-more {
+  color: #e5e5ff;
+  font-size: 12px;
+}
+#mimo-reading-surface .mimo-thought .knowledge-tags span {
+  background: #3734ae;
+  color: #e5e5ff;
+  font-size: 12px;
+  padding: 4px 8px;
+}
+#mimo-reading-surface .mimo-thought .text-button {
+  color: #fff;
+}
+#mimo-reading-surface .contribution-response {
+  border-color: #a7a5ed;
+  padding-top: 10px;
+  margin-top: 6px;
+}
+#mimo-reading-surface .mimo-thought .live-meta {
+  margin-top: 8px;
+}
+#mimo-reading-surface .mimo-thought .contribution-status {
+  margin-top: 4px;
+}
+#mimo-reading-surface .mimo-thought .knowledge-tags {
+  margin-top: 8px;
+}
+#mimo-reading-surface .contribution-evidence {
+  margin-top: 6px;
+}
+#mimo-reading-surface .feedback-primary {
+  background: #fff;
+  color: #3734ae;
+  min-height: 44px;
+}
+#mimo-reading-surface .feedback-skip {
+  background: #3734ae;
+  color: #fff;
+  border-color: transparent;
+  min-height: 44px;
+}
+#mimo-reading-surface .feedback-skip:hover:enabled {
+  background: #2f2b94;
+}
+#mimo-reading-surface .contribution-more-actions .text-button {
+  min-height: 44px;
+}
+#mimo-reading-surface
+  .mimo-thought
+  .live-contribution[data-status='corrected']
+  .contribution-status {
+  color: #ffe1a9;
+}
+#mimo-reading-surface
+  .mimo-thought
+  .live-contribution[data-status='answered']
+  .contribution-status {
+  color: #b4f0ce;
+}
+#mimo-reading-surface .feedback-error {
+  color: #fff;
+  border-color: #ffb8c8;
+  background: #742b50;
+}
+body:not(.settings-open)[data-detail='summary']
+  #mimo-reading-surface
+  :is(.text-button, .feedback-primary, .feedback-skip, summary):focus-visible {
+  outline-color: #fff;
+}
+#mimo-reading-surface .memo-bubble-scroll,
+#mimo-reading-surface #analysis-panel {
+  scrollbar-color: #b3b2ef #4643ce;
+}
+#mimo-reading-surface #view-heading {
+  margin-top: 0;
+}
+#mimo-reading-surface #settings-frame {
+  flex: 1 1 0;
+  min-height: 0;
+  width: 100%;
+  margin: 0;
+  border: 0;
+}
+.audio-recovery {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex: 0 0 auto;
+  margin: 12px 16px;
+}
+.audio-recovery #retry-save {
+  min-height: 44px;
+}
+#session-controls {
+  min-height: 64px;
+  padding: 6px;
+}
+#session-controls .utility-controls {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 3px;
+  width: 100%;
+}
+#session-controls .nav-button {
+  width: 100%;
+  min-width: 0;
+  min-height: 52px;
+  height: auto;
+  padding: 5px 4px;
+  gap: 5px;
+  font-size: 11px;
+  line-height: 1.25;
+}
+#session-controls .nav-button svg {
+  width: 19px;
+  height: 19px;
+}
+#session-controls .nav-button > span {
+  max-width: 100%;
+  white-space: nowrap;
+  overflow-wrap: normal;
+}
+@media (max-width: 300px) {
+  #mimo-reading-surface {
+    margin: 44px 12px 12px;
+    padding-top: 100px;
+  }
+  #mimo-reading-surface #memo-companion {
+    --mimo-art-size: 80px;
+    top: -20px;
+    left: 12px;
+    height: 112px;
+  }
+  #mimo-reading-surface #memo-character {
+    width: 80px;
+    height: 68px;
+    flex-basis: 68px;
+  }
+  #mimo-reading-surface #analysis-panel,
+  #mimo-reading-surface .memo-bubble-scroll {
+    padding-inline: 16px;
+  }
+  #mimo-reading-surface .current-memo h2,
+  #mimo-reading-surface .contribution-heading h2 {
+    font-size: 18px;
+    margin-bottom: 12px;
+  }
+  #mimo-reading-surface #summary-feed .current-memo .live-body,
+  #mimo-reading-surface .mimo-thought .live-body {
+    font-size: 17px;
+    line-height: 1.55;
+  }
+  #mimo-reading-surface .contribution-response {
+    gap: 6px 8px;
+  }
+  #mimo-reading-surface .memo-bubble-scroll {
+    padding-bottom: 16px;
+  }
+  #mimo-reading-surface .contribution-heading h2 {
+    margin-bottom: 8px;
+  }
+  #mimo-reading-surface .feedback-primary,
+  #mimo-reading-surface .feedback-skip {
+    padding-inline: 8px;
+    font-size: 12px;
+  }
+}
+@media (max-width: 240px) {
+  #mimo-reading-surface {
+    margin-top: 36px;
+    padding-top: 88px;
+  }
+  #mimo-reading-surface #memo-companion {
+    --mimo-art-size: 64px;
+    top: -14px;
+    left: 10px;
+    height: 98px;
+  }
+  #mimo-reading-surface #memo-character {
+    width: 64px;
+    height: 54px;
+    flex-basis: 54px;
+  }
+  #mimo-session-controls #stop {
+    width: 44px;
+    padding-inline: 4px 0;
+  }
+  #mimo-reading-surface .current-memo h2,
+  #mimo-reading-surface .contribution-heading h2 {
+    font-size: 17px;
+  }
+  #mimo-reading-surface #summary-feed .current-memo .live-body,
+  #mimo-reading-surface .mimo-thought .live-body {
+    font-size: 16px;
+    line-height: 1.6;
+  }
+  #mimo-reading-surface .feedback-primary svg {
+    display: none;
+  }
+}
+@media (forced-colors: active) {
+  body:not(.settings-open)[data-detail='summary'] #mimo-reading-surface {
+    background: Canvas;
+    color: CanvasText;
+    border: 1px solid CanvasText;
+  }
+  #mimo-reading-surface
+    :is(.current-memo, .mimo-thought)
+    :is(.live-body, .live-meta, .text-button, .knowledge-tags span, .contribution-more) {
+    color: CanvasText !important;
+    background: Canvas;
+  }
+  #mimo-reading-surface #memo-character:focus-visible {
+    outline-color: Highlight;
+    box-shadow: none;
+  }
+}
+#mimo-reading-surface #leave-saved {
+  flex: 0 0 auto;
+  min-height: 44px;
+  margin: 0 24px 10px;
+}
+body:not(.settings-open)[data-detail='summary'] #mimo-reading-surface #leave-saved {
+  color: #fff;
+}
+#mimo-reading-surface .feedback-skip {
+  min-width: 44px;
+}
+#session-controls #settings {
+  grid-column: 3;
+}
+.settings-open #session-controls #settings .settings-icon {
+  display: block;
+}
+
+/* Welcome and idle Settings have local navigation, so no one-item footer is needed. */
+#idle-view {
+  margin: 16px;
+  padding: 28px 24px 24px;
+}
+#idle-view .listen-control {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100%;
+  width: 100%;
+}
+#idle-view .listen-control h1 {
+  margin: 8px 0 12px;
+}
+#idle-view .idle-description {
+  margin: 0;
+  min-height: 0;
+}
+#idle-view .listen-button {
+  flex: 0 0 auto;
+  flex-direction: row;
+  gap: 10px;
+  max-width: 100%;
+  margin: 24px 0 16px;
+  padding: 14px 20px;
+  background: #fff;
+  color: #3734ae;
+}
+#idle-view .listen-button:hover:enabled {
+  background: #e5e5ff;
+  color: #3734ae;
+  transform: translateY(-2px);
+}
+#idle-view .listen-button:active:enabled {
+  background: #d5d4ff;
+  color: #3734ae;
+  transform: translateY(0);
+}
+#idle-view .listen-button span {
+  white-space: normal;
+}
+#idle-view .source-name {
+  margin: 0;
+  max-width: 34ch;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+  line-height: 1.5;
+}
+#idle-view .capture-hint {
+  margin: 6px 0 0;
+  font-size: 12px;
+}
+#idle-settings {
+  flex: 0 0 auto;
+  justify-content: center;
+  min-height: 44px;
+  margin-top: auto;
+  padding: 16px 12px 8px;
+  color: #e5e5ff;
+  font-size: 13px;
+}
+#idle-settings svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
+#idle-settings:focus-visible {
+  outline-color: #fff;
+}
+@media (max-width: 300px), (max-height: 650px) {
+  #idle-view {
+    margin: 12px;
+    padding: 20px 16px 16px;
+  }
+  #idle-view .idle-mimo-greeting {
+    width: 130px;
+    height: 130px;
+    margin-bottom: 8px;
+  }
+  #idle-view .listen-control h1 {
+    font-size: 30px;
+  }
+  #idle-view .listen-button {
+    margin-block: 20px 14px;
+  }
+}
+@media (max-height: 450px) {
+  #idle-view .idle-mimo-greeting {
+    width: 80px;
+    height: 80px;
+  }
+  #idle-view .listen-control h1 {
+    font-size: 26px;
+  }
+}
+@media (forced-colors: active) {
+  #mimo-session-controls :is(#session-time, #stop) {
+    color: CanvasText;
+  }
+  #idle-view :is(.listen-button, .idle-settings) {
+    color: ButtonText;
+    background: ButtonFace;
+  }
+}

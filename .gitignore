@@ -1,0 +1,24 @@
+# Dependencies and generated builds (development bundles contain a local relay token).
+node_modules/
+dist/
+artifacts/
+
+# Local credentials, recordings, and private evaluation data.
+.local/
+.env
+.env.*
+!.env.example
+training:meeting/
+ux-audit-live-comprehension-2026-10-29-evidence/
+ux-audit-live-comprehension-2026-10-29.md
+
+# Generated design evidence and downloaded third-party research snapshots.
+.impeccable/build/
+.impeccable/review/
+.impeccable/mocks/
+.impeccable/critique/
+.impeccable/hook.cache.json
+docs/research/
+
+# Operating-system metadata.
+.DS_Store

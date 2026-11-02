@@ -1,0 +1,35 @@
+{
+  "kind": "synthetic",
+  "label": "Format example only — invented speech and availability times",
+  "source": "Invented fixture; not the user's YouTube podcast",
+  "environment": {
+    "device": "unmeasured",
+    "browser": "unmeasured",
+    "modelCache": "unmeasured",
+    "origin": "recording start, not first speech"
+  },
+  "durationMs": 45000,
+  "segments": [
+    {
+      "id": 0,
+      "startMs": 0,
+      "endMs": 8000,
+      "availableAtMs": 8600,
+      "text": "Kita membahas rencana peluncuran fitur pencatatan rapat. Fokus pertama adalah kecepatan catatan awal."
+    },
+    {
+      "id": 1,
+      "startMs": 7000,
+      "endMs": 15000,
+      "availableAtMs": 15600,
+      "text": "Targetnya catatan pertama muncul dalam lima belas detik. Kita perlu membandingkan dengan dua puluh dan tiga puluh detik tanpa mengurangi akurasi."
+    },
+    {
+      "id": 2,
+      "startMs": 14000,
+      "endMs": 22000,
+      "availableAtMs": 22600,
+      "text": "Belum ada keputusan untuk mengganti model. Kita akan mengukur tahap transkripsi dan respons AI secara terpisah."
+    }
+  ]
+}

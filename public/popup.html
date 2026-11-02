@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mimo</title>
+    <link rel="stylesheet" href="mimo.css" />
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body class="popup" data-surface="Daylight">
+    <header class="popup-header">
+      <div class="wordmark" aria-label="Mimo">
+        <span>Mimo</span>
+      </div>
+      <div id="capture-status" class="capture-status" role="status">
+        <span id="dot" class="status-signal" aria-hidden="true"></span>
+        <span id="state">Checking setup…</span
+        ><time id="timer" aria-label="Recording duration" hidden>00:00</time>
+      </div>
+    </header>
+    <main>
+      <section class="listen-control" aria-label="Recording control">
+        <h1 class="idle-intro">Hi, I’m Mimo.</h1>
+        <div class="memo-welcome">
+          <button
+            id="memo-greeting"
+            class="memo-greeting"
+            aria-label="Say hello to Mimo"
+            title="Say hello to Mimo"
+          >
+            <img
+              class="memo-character"
+              src="memo/memo-slime.png"
+              alt=""
+              width="144"
+              height="144"
+              draggable="false"
+            />
+          </button>
+          <p id="memo-message" class="memo-message" aria-live="polite">Ready when you are.</p>
+        </div>
+        <button id="main-action" class="listen-button" disabled aria-describedby="source notice">
+          <svg class="listen-symbol" viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="8" y="3" width="8" height="12" rx="4" />
+            <path d="M5 11v1a7 7 0 0 0 14 0v-1M12 19v3m-4 0h8" />
+          </svg>
+          <span id="action-label">Start listening</span>
+        </button>
+        <p id="source" class="source-name">Current tab</p>
+        <p id="notice" class="capture-hint">Tab audio + microphone</p>
+        <button id="open-assistant" class="primary" hidden>
+          Join Mimo<svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M7 17 17 7M7 7h10v10" />
+          </svg>
+        </button>
+        <p class="live-guidance">
+          Follow the conversation. Mimo will bring useful thoughts to you.
+        </p>
+      </section>
+      <p id="error" class="popup-error" role="alert" hidden></p>
+      <section id="recovery" class="popup-recovery" hidden>
+        <h2>Audio waiting to be saved</h2>
+        <div id="retained"></div>
+      </section>
+    </main>
+    <footer class="popup-footer">
+      <button id="settings" class="icon-button" aria-label="Settings" title="Settings">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 7h16M4 17h16" />
+          <circle cx="9" cy="7" r="3" />
+          <circle cx="15" cy="17" r="3" />
+        </svg>
+        <span>Settings</span>
+      </button>
+      <button
+        id="stop"
+        class="icon-button stop-button"
+        aria-label="Stop recording and save audio"
+        title="Stop &amp; save"
+        hidden
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="7" y="7" width="10" height="10" rx="1" />
+        </svg>
+        <span>Stop &amp; save</span>
+      </button>
+    </footer>
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>

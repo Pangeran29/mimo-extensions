@@ -1,0 +1,36 @@
+{
+  "buildPath": "comp",
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "overused-font",
+        "value": "arial",
+        "files": [
+          "scripts/meeting-reference-review.html"
+        ],
+        "createdAt": "2026-10-23T10:07:16.529Z",
+        "reason": "Codex decided: Arial is intentional for this local transcript verification utility; an installed readable font avoids external font requests. Keep the existing reviewed layout."
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          "public/assistant.html"
+        ],
+        "createdAt": "2026-10-30T09:39:54.223Z",
+        "reason": "Codex decided: false positive for idle-view. public/assistant.css sets top padding clamp(24px, 7dvh, 60px), with a 24px minimum; narrow/short variants preserve this inset. Independent frontend screenshot/source review at artifacts/live-memo-v2/activation-2026-10-30/frontend-finish-review.md confirmed the actual spacing. No runtime UI change is needed."
+      },
+      {
+        "rule": "aphoristic-cadence",
+        "value": "*",
+        "files": [
+          "public/setup.html"
+        ],
+        "createdAt": "2026-10-30T11:22:54.196Z",
+        "reason": "Codex decided: false positive on factual provider setup instructions identifying DeepSeek-V4.1-Flash-1017 and explaining that the managed service needs no customer key, with adjacent transfer/charge disclosures. Independently reviewed in artifacts/memo-character-2026-10-30/frontend-finish-review.md; no slogan or contrastive marketing copy is present."
+      }
+    ]
+  }
+}

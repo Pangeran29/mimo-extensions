@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mimo</title>
+    <link rel="stylesheet" href="assistant.css" />
+    <link rel="stylesheet" href="mimo.css" />
+    <link rel="stylesheet" href="assistant-upper.css" />
+  </head>
+  <body class="assistant-window" data-surface="Midnight" data-detail="summary">
+    <main>
+      <div id="ai-alert" class="notice" role="alert" hidden>
+        <p id="ai-error"></p>
+        <button id="clear-error" class="text-button" type="button">Dismiss</button>
+      </div>
+      <div id="audio-recovery" class="notice audio-recovery" role="status" hidden>
+        <p>Audio is waiting to be saved.</p>
+        <button id="retry-save" class="secondary-button" type="button" hidden>Retry save</button>
+      </div>
+      <section id="idle-view" class="idle-view" aria-label="Start listening">
+        <div class="listen-control">
+          <button
+            id="idle-mimo-greeting"
+            class="idle-mimo-greeting"
+            type="button"
+            aria-label="Say hello to Mimo"
+          >
+            <img src="memo/memo-slime.png" alt="" width="180" height="180" draggable="false" />
+          </button>
+          <h1>Hi, I’m Mimo.</h1>
+          <p id="idle-mimo-message" class="idle-description" aria-live="polite">
+            Stay with the conversation. I’ll help you follow it.
+          </p>
+          <button
+            id="start"
+            class="listen-button"
+            type="button"
+            disabled
+            aria-describedby="start-source start-hint"
+          >
+            <span id="start-label">Start listening</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7-11-7Z" /></svg>
+          </button>
+          <p id="start-source" class="source-name">Current tab</p>
+          <p id="start-hint" class="capture-hint">Tab audio + microphone</p>
+          <button id="idle-settings" class="text-button idle-settings" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 7h16M4 17h16" />
+              <circle cx="9" cy="7" r="3" />
+              <circle cx="15" cy="17" r="3" />
+            </svg>
+            <span>Settings</span>
+          </button>
+        </div>
+      </section>
+      <div id="mimo-reading-surface" class="mimo-reading-surface" hidden>
+        <aside id="memo-companion" class="memo-companion" aria-label="Mimo companion" hidden>
+          <button
+            id="memo-character"
+            class="memo-character"
+            type="button"
+            aria-label="Say hello to Mimo"
+            aria-controls="contribution-view"
+            aria-expanded="false"
+            data-state="idle"
+            data-has-contribution="false"
+          >
+            <img src="memo/memo-slime.png" alt="" width="144" height="144" draggable="false" />
+            <svg class="memo-contribution-hint" viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 4h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-7l-6 4v-4H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"
+              />
+              <path d="M7 9h10M7 13h6" />
+            </svg>
+          </button>
+          <div
+            id="mimo-session-controls"
+            class="mimo-session-controls"
+            aria-label="Recording controls"
+          >
+            <div class="recording-status" id="recording-status">
+              <span id="record-dot" class="record-dot" hidden></span>
+              <span id="session-status" class="sr-only">Ready</span><span id="session-time"></span>
+            </div>
+            <button
+              id="stop"
+              class="icon-button stop-button"
+              type="button"
+              aria-label="Stop recording and save audio"
+              title="Stop &amp; save"
+              disabled
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="7" y="7" width="10" height="10" rx="1" />
+              </svg>
+            </button>
+          </div>
+          <p id="mimo-cue" class="mimo-cue" aria-live="polite">Say hi to Mimo</p>
+        </aside>
+        <button id="leave-saved" class="text-button leave-saved" type="button" hidden>
+          Back to start
+        </button>
+        <div id="assistant-view" hidden>
+          <div id="view-heading" class="view-heading" hidden>
+            <h1 id="view-title" tabindex="-1">Summary</h1>
+          </div>
+          <div id="memo-recovery" class="memo-recovery" role="status" hidden>
+            <p id="memo-recovery-text"></p>
+            <button id="resume" class="text-button" type="button" hidden>Try again</button>
+            <button id="presence-settings" class="text-button" type="button" hidden>
+              Open Settings
+            </button>
+          </div>
+          <div id="analysis-view" class="reading-view">
+            <div
+              id="analysis-panel"
+              class="result-panel"
+              role="region"
+              aria-label="Current understanding"
+              tabindex="0"
+            >
+              <div id="summary-empty" class="empty-state">
+                <h2>Getting into the conversation.</h2>
+                <p>Your current understanding will appear when there’s enough context.</p>
+              </div>
+              <article id="summary-feed" aria-label="Live memo"></article>
+              <section id="follow-up" class="follow-up" aria-labelledby="question-label" hidden>
+                <div class="follow-up-heading">
+                  <h2 id="question-label">You could ask</h2>
+                  <button id="dismiss" class="text-button" type="button">Dismiss</button>
+                </div>
+                <p id="question"></p>
+                <div class="follow-up-actions">
+                  <button id="useful" class="text-button" type="button">Useful</button
+                  ><button id="evidence" class="text-button" type="button" hidden>
+                    See source
+                  </button>
+                  <details id="question-context">
+                    <summary>Why this question?</summary>
+                    <p id="reason"></p>
+                  </details>
+                </div>
+              </section>
+            </div>
+            <section
+              id="contribution-view"
+              class="contribution-view"
+              aria-label="Additional contribution"
+              tabindex="0"
+              hidden
+            >
+              <div
+                id="memo-bubble"
+                class="mimo-thought"
+                role="region"
+                aria-label="A thought from Mimo"
+                hidden
+              >
+                <div class="thought-toolbar">
+                  <button
+                    id="memo-bubble-close"
+                    class="text-button thought-back"
+                    type="button"
+                    aria-label="Close contribution and return to current understanding"
+                  >
+                    <svg viewBox="0 0 20 20" aria-hidden="true">
+                      <path d="M16 10H4m5-5-5 5 5 5" />
+                    </svg>
+                    <span>Back to understanding</span>
+                  </button>
+                </div>
+                <div class="memo-bubble-scroll"><div id="memo-bubble-content"></div></div>
+              </div>
+            </section>
+          </div>
+          <div id="transcript-view" class="reading-view" hidden>
+            <button id="transcript-back" class="text-button back" type="button" hidden>
+              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M16 10H4m5-5-5 5 5 5" /></svg
+              ><span id="transcript-back-label">Back to live memo</span>
+            </button>
+            <p id="context-warning" class="notice" hidden>
+              Some speech may be missing. Check important details against the recording.
+            </p>
+            <p id="transcript-warning" class="notice" role="status" hidden></p>
+            <div
+              id="transcript-panel"
+              class="result-panel"
+              role="region"
+              aria-label="Timestamped transcript"
+              tabindex="0"
+            >
+              <p id="transcript-empty" class="empty">Your transcript will appear here.</p>
+              <div id="transcript-feed"></div>
+            </div>
+            <button id="jump-latest" class="jump-latest" type="button" hidden>
+              Back to latest ↓
+            </button>
+          </div>
+          <div id="insights-view" class="reading-view" hidden>
+            <button id="insights-back" class="text-button back" type="button">
+              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M16 10H4m5-5-5 5 5 5" /></svg
+              ><span id="history-back-label">Live memo</span>
+            </button>
+            <div
+              id="insights-panel"
+              class="result-panel"
+              role="region"
+              aria-label="Deeper analysis"
+              tabindex="0"
+            >
+              <section id="live-history" hidden>
+                <h2>Thoughts to come back to</h2>
+                <div id="live-history-feed"></div>
+                <button id="history-more" class="secondary-button" type="button">
+                  Load 25 more
+                </button>
+              </section>
+              <p class="empty">Explore the current conversation and its relevant sources.</p>
+              <button id="deeper" class="secondary-button" type="button" disabled>
+                Analyze deeper
+              </button>
+              <section id="deep-section" hidden>
+                <h2>Deeper analysis</h2>
+                <p id="deep-result" class="generated" aria-live="polite"></p>
+              </section>
+            </div>
+          </div>
+        </div>
+        <div id="settings-shortcuts" class="settings-shortcuts" hidden>
+          <button
+            id="open-insights"
+            class="text-button session-history"
+            type="button"
+            aria-label="Session history"
+            title="Session history"
+            hidden
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5L12 3Z" /></svg
+            ><span>Session history</span>
+          </button>
+        </div>
+        <iframe id="settings-frame" title="Mimo settings" allow="microphone" hidden></iframe>
+      </div>
+      <footer class="session-controls" id="session-controls">
+        <div class="utility-controls">
+          <button
+            id="open-live"
+            class="icon-button nav-button"
+            type="button"
+            aria-label="Live memo"
+            title="Live memo"
+            aria-pressed="true"
+            hidden
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 10v4m5-8v12m6-15v18m5-11v4" />
+            </svg>
+            <span>Live memo</span>
+          </button>
+          <button
+            id="open-transcript"
+            class="icon-button nav-button"
+            type="button"
+            aria-label="Open transcript"
+            title="Transcript"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M7 3h8l4 4v14H5V3h2Zm8 0v5h4M8 12h8M8 16h6" />
+            </svg>
+            <span>Transcript</span>
+          </button>
+          <button
+            id="settings"
+            class="icon-button nav-button"
+            type="button"
+            aria-label="Settings"
+            title="Settings"
+          >
+            <svg class="settings-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 7h16M4 17h16" />
+              <circle cx="9" cy="7" r="3" />
+              <circle cx="15" cy="17" r="3" />
+            </svg>
+            <span class="settings-label">Settings</span>
+          </button>
+        </div>
+      </footer>
+      <span id="announcement" class="sr-only" aria-live="polite"></span>
+    </main>
+    <script type="module" src="assistant-window.js"></script>
+  </body>
+</html>

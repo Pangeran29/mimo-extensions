@@ -1,0 +1,112 @@
+.mimo-mascot {
+  --mimo-size: 104px;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.mimo-portrait {
+  position: relative;
+  display: block;
+  flex: 0 0 auto;
+  width: var(--mimo-size);
+  height: var(--mimo-size);
+  margin: auto;
+  transform: translate(var(--mimo-look-x, 0px), var(--mimo-look-y, 0px))
+    rotate(var(--mimo-look-turn, 0deg));
+  transform-origin: center 78%;
+  user-select: none;
+  pointer-events: none;
+}
+.mimo-portrait > .mimo-fallback {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  animation: none !important;
+  transform: none !important;
+  pointer-events: none;
+  user-select: none;
+}
+.mimo-expression {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 100%;
+  height: 100%;
+  display: block;
+  transform: translate(-50%, -50%);
+  background-image: url('mimo/mimo-expressions.png');
+  background-repeat: no-repeat;
+  background-size: 400% 200%;
+  background-position: 0% 0%;
+  opacity: 0;
+}
+.mimo-portrait[data-sprite-ready='true'] > .mimo-expression {
+  opacity: 1;
+}
+.mimo-portrait[data-sprite-ready='true'] > .mimo-fallback {
+  opacity: 0;
+}
+.mimo-expression[data-pose='idle'] {
+  background-position: 0% 0%;
+}
+.mimo-expression[data-pose='listening'] {
+  background-position: 33.333333% 0%;
+}
+.mimo-expression[data-pose='thinking'] {
+  background-position: 66.666667% 0%;
+}
+.mimo-expression[data-pose='insight'] {
+  background-position: 100% 0%;
+}
+.mimo-expression[data-pose='appreciation'] {
+  background-position: 0% 100%;
+}
+.mimo-expression[data-pose='curious'] {
+  background-position: 33.333333% 100%;
+}
+.mimo-expression[data-pose='rest'] {
+  background-position: 66.666667% 100%;
+}
+.mimo-expression[data-pose='reassure'] {
+  background-position: 100% 100%;
+}
+.mimo-expression:is(
+  [data-pose='appreciation'],
+  [data-pose='curious'],
+  [data-pose='rest'],
+  [data-pose='reassure']
+) {
+  transform: translate(-50%, -41%);
+}
+.mimo-mascot[data-mimo-pose='listening']:not([data-mimo-sleeping='true']):not(
+    [data-mimo-reduced='true']
+  )
+  .mimo-portrait {
+  animation: mimo-breathe 4s ease-in-out 3;
+}
+.mimo-mascot[data-mimo-pressed='true']:not([data-mimo-reduced='true']) .mimo-portrait {
+  transform: scale(1.08, 0.88);
+}
+@keyframes mimo-breathe {
+  0%,
+  100% {
+    scale: 1;
+  }
+  50% {
+    scale: 1.025 0.975;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mimo-portrait {
+    animation: none !important;
+    transform: none !important;
+  }
+}
+@media (forced-colors: active) {
+  .mimo-expression,
+  .mimo-fallback {
+    forced-color-adjust: none;
+  }
+}
