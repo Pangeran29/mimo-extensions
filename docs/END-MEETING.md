@@ -1,6 +1,12 @@
-# End meeting · 0.13.0 candidate
+# End meeting · 0.13.1 candidate
 
-The 2026-11-02 source candidate adds a post-meeting reader and a three-file meeting bundle. It supersedes the earlier rule that Stop only retained live understanding. It is separate from the installed 0.12.1 extension: candidate builds are under `artifacts/end-meeting-2026-11-02/build` and `artifacts/end-meeting-2026-11-02/replay-build`. Promotion, extension Reload, and the managed relay update remain pending. See the [implementation and evidence record](../artifacts/end-meeting-2026-11-02/IMPLEMENTATION.md).
+The 0.13.1 patch adds one bounded automatic revision when the minutes reviewer rejects a draft. The composer receives the rejected candidate, the rejection reason and the original evidence; the complete revised draft must pass source validation and every review batch before release. A second rejection stops processing with a retry state. Rejection feedback is checkpointed for explicit retry. Existing 0.13.0 Replay Lab failures can recover feedback from that run's diagnostic events only when the final transcript hash matches and the candidate's sources validate; retry reuses the saved transcript and extraction checkpoints rather than replaying audio.
+
+This addresses a real 0.13.0 test in which the reviewer caught a server-ownership claim reversed against its source. Audio and transcript had saved correctly; withholding the inaccurate MoM was correct, but the original flow stopped without trying a source-grounded revision. See the local [diagnosis](../artifacts/mom-recovery-2026-11-02/diagnosis.json). No rejected draft is presented as accepted minutes.
+
+The patch passes 369 unit tests, 17 relay tests, five Node evaluation tests and offline checks; a separate Chrome run passes 45 assertions, including an incorrect deadline rejected, repaired against feedback, rechecked, displayed and exported. Its provider responses are fixed local fixtures, not a real-model quality certification. Legacy rejection recovery was also checked offline against the actual saved 215-segment session without a provider call. With the user's idle/reopen authorization, only the beta Replay Lab was updated to 0.13.1; runtime inspection confirmed the same failed session and its two saved-file acknowledgements remain. Use **Retry meeting notes** on that result; replaying its audio is unnecessary. The real provider's corrected result still needs user review.
+
+The original 0.13.0 candidate adds a post-meeting reader and a three-file meeting bundle. It supersedes the earlier rule that Stop only retained live understanding. Its preserved builds are under `artifacts/end-meeting-2026-11-02/build` and `artifacts/end-meeting-2026-11-02/replay-build`; a separate 0.13.0 beta was opened with its own testing relay. The 0.13.1 repair candidates are under `artifacts/mom-recovery-2026-11-02/`. Main-extension promotion remains separate. See the [original implementation and evidence record](../artifacts/end-meeting-2026-11-02/IMPLEMENTATION.md).
 
 ## Stop and read the result
 
@@ -61,6 +67,8 @@ pnpm replay:lab --no-build
 Opening the launcher does not autoplay or start provider inference. Explicit Start on speech uses the configured ASR/AI services. See [Replay Lab](REPLAY-LAB.md) for the ordinary research workflow and evidence boundaries.
 
 ## Native picker check still required
+
+The user subsequently confirmed native selection of `/Users/Apple/Downloads/MimoExports`, and the resulting combined audio and transcript were observed on disk. MoM was absent because of the review rejection described above. This confirms that native destination for that Replay Lab session; popup/sidebar chooser completion and permission restoration after restart still need their own checks. Chrome deliberately blocks selecting the entire Downloads folder while allowing dedicated child folders.
 
 The saved Chrome context probe establishes that both extension-page and localhost trusted clicks can invoke a pending native picker. It does not establish a selected OS folder, write consent, native popup/sidebar completion, or restored permission after restart. The deterministic export integration substitutes OPFS for selection: its handle and writer are real browser File System Access objects, but it is not native OS picker proof. See [File System Access evidence boundaries](../artifacts/end-meeting-2026-11-02/FSA-EVIDENCE.md).
 

@@ -74,12 +74,14 @@ for (const file of preservedPaths) {
 }
 const fixture =
   'Synthetic end-meeting fixture: the team agreed to launch on 23 November. Rani will confirm support capacity by 18 November.';
+const rejectionReason =
+  'The action changes the deadline to 19 November, but the original transcript explicitly says 18 November. Preserve the agreed launch point and correct the deadline against its source.';
 const checks = [],
   errors = [],
   requests = [],
   states = [],
   captures = [];
-let context, page, profile, scenario, releaseAsr, releaseCompose;
+let context, page, profile, scenario, releaseAsr, releaseCompose, releaseRepair;
 const check = (name, value, detail) => {
   assert.ok(value, name + (detail === undefined ? '' : ': ' + JSON.stringify(detail)));
   checks.push(name);
@@ -167,11 +169,22 @@ const relay = createRelay({
       await new Promise((r) => (releaseCompose = r));
       scenario.composeHeld = false;
     }
+    if (stage === 'compose' && input.repairFeedback) {
+      scenario.repairFeedback = input.repairFeedback;
+      if (scenario.holdRepairCompose) {
+        scenario.repairHeld = true;
+        await new Promise((r) => (releaseRepair = r));
+        scenario.repairHeld = false;
+      }
+    }
     if (stage === 'review')
       return sse(body, {
         protocol: 1,
-        accept: true,
-        reason: 'Synthetic fixture checks exact source quotes and explicit agreements.',
+        accept: !(scenario.rejectFirstReview && scenario.calls.mom_review === 1),
+        reason:
+          scenario.rejectFirstReview && scenario.calls.mom_review === 1
+            ? rejectionReason
+            : 'Synthetic fixture checks exact source quotes and explicit agreements.',
       });
     const transcript =
       input.transcript ?? input.chronologicalLedgers?.flatMap((x) => x.facts) ?? [];
@@ -187,7 +200,10 @@ const relay = createRelay({
       },
       {
         kind: 'action',
-        text: 'Rani will confirm support capacity by 18 November.',
+        text:
+          stage === 'compose' && scenario.rejectFirstReview && !input.repairFeedback
+            ? 'Rani will confirm support capacity by 19 November.'
+            : 'Rani will confirm support capacity by 18 November.',
         sources: [source],
         quotes: [{ source, text: 'Rani will confirm support capacity by 18 November.' }],
       },
@@ -352,6 +368,33 @@ async function files(job) {
     },
     { folder: job.folderName, audio: job.audioFilename },
   );
+}
+async function savedFileNames(job) {
+  return page.evaluate(async (folder) => {
+    const root = await navigator.storage.getDirectory();
+    const directory = await root.getDirectoryHandle(folder);
+    const names = [];
+    for await (const name of directory.keys()) names.push(name);
+    return names.sort();
+  }, job.folderName);
+}
+async function replayEvents(runId) {
+  return page.evaluate(async (id) => {
+    const db = await new Promise((resolve, reject) => {
+      const request = indexedDB.open('memo-replay-lab', 1);
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    try {
+      return await new Promise((resolve, reject) => {
+        const request = db.transaction('events').objectStore('events').index('run').getAll(id);
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+    } finally {
+      db.close();
+    }
+  }, runId);
 }
 let extensionId, failure, buildInfo, sourceBefore, sourceAfterBuild, sourceAfter;
 try {
@@ -554,8 +597,10 @@ try {
     await page.evaluate(async () => chrome.tabs.setZoom((await chrome.tabs.getCurrent()).id, 1));
     await page.setViewportSize({ width: 1440, height: 1000 });
     await page.evaluate(() => (window.__cancelTestPicker = true));
-    const manual = await begin('manual-stop-cancel-and-mom-retry', audio, {
+    const manual = await begin('manual-stop-cancel-retry-and-quality-repair', audio, {
       failFirstCompose: true,
+      rejectFirstReview: true,
+      holdRepairCompose: true,
     });
     await until((s) => s.replay.sourceMs >= 4000, 'played prefix reaches four seconds');
     await page.locator('#stop-replay').click();
@@ -599,22 +644,82 @@ try {
     );
     states.push({ ...retrying, label: 'manual-mom-backoff' });
     check('MoM transport503 is recoverable without dropping audio', retrying.end.audio === 'ready');
+    const repairing = await until(
+      (s) => s.end?.sessionId === manualId && s.end.checkpoint?.repairing && scenario.repairHeld,
+      'review rejection starts bounded feedback repair',
+    );
+    states.push({ ...repairing, label: 'manual-review-rejected-repair-held' });
+    const feedback = scenario.repairFeedback;
+    check(
+      'Repair receives rejected draft, reviewer feedback and original source evidence',
+      feedback?.reviewerReason === rejectionReason &&
+        JSON.stringify(feedback.focusIndexes) === JSON.stringify([0, 1]) &&
+        feedback.rejectedCandidate.bullets[1].text.includes('19 November') &&
+        feedback.rejectedCandidate.bullets[0].text.includes('23 November') &&
+        feedback.evidence.some((e) => e.excerpt.includes('by 18 November.')),
+      feedback,
+    );
+    check(
+      'Rejected draft remains internal while the correcting checkpoint is persisted',
+      !repairing.end.minutes &&
+        !repairing.end.checkpoint.draft &&
+        repairing.end.checkpoint.lastRejection.reason === rejectionReason &&
+        repairing.end.files.mom.phase === 'pending',
+    );
+    const manualFrame = page.frameLocator('#memo-frame');
+    await manualFrame
+      .locator('.end-status')
+      .filter({ hasText: 'correcting the meeting notes' })
+      .waitFor();
+    check(
+      'Sidebar shows correcting status without exposing rejected MoM bullets',
+      (await manualFrame.locator('.end-bullets > li').count()) === 0,
+    );
+    check(
+      'Canceling the initial folder choice retains the recording throughout quality repair',
+      repairing.end.destination === 'missing' && repairing.end.audio === 'ready',
+    );
+    await manualFrame.locator('body').evaluate(() => (window.__cancelTestPicker = false));
+    await manualFrame.getByRole('button', { name: 'Choose folder', exact: true }).click();
+    const repairFiles = await until(
+      (s) =>
+        s.end?.sessionId === manualId &&
+        s.end.files.audio.phase === 'saved' &&
+        s.end.files.transcript.phase === 'saved',
+      'audio and transcript export while quality repair waits',
+    );
+    const preRepairFiles = await savedFileNames(repairFiles.end);
+    check(
+      'Rejected MoM is never exported while audio and transcript are saved',
+      JSON.stringify(preRepairFiles) ===
+        JSON.stringify([repairFiles.end.audioFilename, 'transcript.txt'].sort()) &&
+        repairFiles.end.files.mom.phase === 'pending',
+      preRepairFiles,
+    );
+    await capture('manual-mom-correcting-no-rejected-output.png');
+    releaseRepair();
+    scenario.holdRepairCompose = false;
     const ready = await until(
       (s) => s.end?.sessionId === manualId && s.end.phase === 'ready',
-      'MoM retry finishes',
+      'repaired MoM is reviewed and accepted',
     );
     check(
-      'Repeated Stop does not duplicate MoM generation',
-      scenario.calls.mom_compose === 2 && scenario.calls.mom_review === 1,
+      'Repeated Stop permits only the transport retry and one quality revision',
+      scenario.calls.mom_compose === 3 && scenario.calls.mom_review === 2,
       scenario.calls,
     );
-    check(
-      'MoM remains available without a selected directory',
-      ready.end.destination === 'missing' && ready.end.minutes.bullets.length === 2,
+    const manualReviews = requests.filter(
+      (r) => r.scenario === scenario.name && r.schema === 'meeting_minutes_review_v1',
     );
-    await page.evaluate(() => (window.__cancelTestPicker = false));
-    const manualFrame = page.frameLocator('#memo-frame');
-    await manualFrame.getByRole('button', { name: 'Choose folder', exact: true }).click();
+    check(
+      'The complete corrected draft is checked again before publication',
+      manualReviews.length === 2 &&
+        manualReviews[0].input.candidateInventory[1].text.includes('19 November') &&
+        manualReviews[1].input.candidateInventory[1].text.includes('18 November') &&
+        manualReviews[1].input.candidateInventory.length === 2 &&
+        ready.end.minutes.bullets.length === 2 &&
+        !ready.end.checkpoint.repairing,
+    );
     const saved = await until(
       (s) =>
         s.end?.sessionId === manualId &&
@@ -625,6 +730,25 @@ try {
     await writeFile(
       path.join(artifact, 'manual-files.json'),
       JSON.stringify(prefix, null, 2) + '\n',
+    );
+    await manualFrame.locator('.end-bullets > li').nth(1).waitFor();
+    check(
+      'Only accepted corrected MoM reaches the sidebar and mom.txt',
+      prefix.mom ===
+        '- The team agreed to launch on 23 November.\n- Rani will confirm support capacity by 18 November.\n' &&
+        (await manualFrame.locator('.end-bullets').innerText()).includes('18 November') &&
+        !(await manualFrame.locator('.end-bullets').innerText()).includes('19 November'),
+    );
+    const events = await replayEvents(manual.replay.run.id);
+    await writeFile(
+      path.join(artifact, 'manual-quality-repair-events.json'),
+      JSON.stringify(events, null, 2) + '\n',
+    );
+    check(
+      'Replay timeline persists rejection, repair and final acceptance events',
+      events.some((e) => e.kind === 'end.mom-review-rejected') &&
+        events.some((e) => e.kind === 'end.mom-repair-started') &&
+        events.some((e) => e.kind === 'end.mom-verdict' && e.data.revision === 1 && e.data.accept),
     );
     check(
       'Manual Stop exports only the played prefix',
@@ -728,6 +852,9 @@ try {
   console.error(e.stack);
   process.exitCode = 1;
 } finally {
+  releaseAsr?.();
+  releaseCompose?.();
+  releaseRepair?.();
   await writeFile(
     path.join(artifact, 'result.json'),
     JSON.stringify(

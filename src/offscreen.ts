@@ -12,7 +12,7 @@ import { checkMicrophone } from './microphone';
 import { BUILD_ID } from './build-info';
 import { REPLAY_LAB } from './replay/config';
 import { ReplayAudioSource } from './replay/source';
-import { appendEvent, getRun, getSource, getSourceBlob, listRuns, updateRun } from './replay/store';
+import { appendEvent, getRun, getSource, getSourceBlob, listRuns, readEvents, updateRun } from './replay/store';
 import type { ReplayRun, ReplayStatus } from './replay/types';
 import { BATCH_SECONDS } from './transcription/batch';
 import { LiveMemoController as AssistantController } from './assistant/v2/controller';
@@ -47,6 +47,7 @@ import type { EndMeetingJob, EndReason } from './end-meeting/types';
 import { ReplayRecorder } from './replay/recorder';
 import { loadTranscript } from './transcription/store';
 import { endJobSettled, recoveredEndTranscript } from './end-meeting/lifecycle';
+import { replayRejection } from './end-meeting/recovery';
 let endSettings: AssistantSettings = { ...DEFAULT_SETTINGS };
 let endError: string | undefined;
 let endObservations = Promise.resolve();
@@ -659,7 +660,11 @@ chrome.runtime.onMessage.addListener((message: RecorderMessage, sender, respond)
       case 'END_RETRY':
         await endReady;
         await endMeeting.updateTranscript(await transcription.status());
-        await endMeeting.retry(message.sessionId);
+        const retryJob = await endMeeting.get(message.sessionId);
+        const priorRejection = retryJob?.replayRunId
+          ? replayRejection(retryJob, await readEvents(retryJob.replayRunId).catch(() => []))
+          : undefined;
+        await endMeeting.retry(message.sessionId, priorRejection);
         return endMeeting.get(message.sessionId);
       case 'END_CONFIGURE':
         endMeeting.configure(message.settings, message.apiKey ?? '');

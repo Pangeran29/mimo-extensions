@@ -19,6 +19,8 @@ function phaseText(job: EndMeetingJob): string {
   if (job.phase === 'generating')
     return job.retryAt && job.retryAt > Date.now()
       ? 'The AI service needs a moment. Your meeting notes will retry automatically.'
+      : job.checkpoint?.repairing
+        ? 'Mimo is correcting the meeting notes against the transcript, then checking them again.'
       : 'Mimo is finding the important points from the whole conversation.';
   if (job.phase === 'failed') return job.error ?? 'Meeting notes could not be completed. Your audio and transcript are retained.';
   if (job.phase === 'empty') return job.minutes?.emptyReason ?? 'There was not enough conversation to write meeting notes.';
@@ -157,9 +159,11 @@ export class EndMeetingView {
           ? 'Folder access needs to be granted again. Choose a folder to continue saving.'
           : writeFailed
             ? `${saved} of 3 files saved. The remaining files need a retry; your results are retained.`
+            : job.phase === 'failed'
+              ? `${saved} of 3 files saved. Meeting notes need a retry; your audio and transcript are retained.`
             : `Saving to ${job.directoryName ? job.directoryName + ' / ' : ''}${job.folderName}. ${saved} of 3 files saved.`;
     if (this.exportStatus.textContent !== exportText) this.exportStatus.textContent = exportText;
-    const fileSignature = JSON.stringify(job.files);
+    const fileSignature = JSON.stringify([job.files, job.phase]);
     if (this.fileList.dataset.signature !== fileSignature) {
       this.fileList.dataset.signature = fileSignature;
       this.fileList.replaceChildren();
@@ -167,7 +171,7 @@ export class EndMeetingView {
         const file = job.files[type];
         const row = document.createElement('li');
         row.dataset.state = file.phase;
-        row.textContent = `${label}: ${file.phase === 'saved' ? 'saved' : file.phase === 'writing' ? 'saving…' : file.phase === 'failed' ? (file.error ?? 'needs retry') : 'waiting'}`;
+        row.textContent = `${label}: ${file.phase === 'saved' ? 'saved' : file.phase === 'writing' ? 'saving…' : file.phase === 'failed' ? (file.error ?? 'needs retry') : type === 'mom' && job.phase === 'failed' ? 'needs retry' : type === 'mom' && job.phase === 'generating' ? 'preparing…' : 'waiting'}`;
         this.fileList.append(row);
       }
     }

@@ -346,12 +346,15 @@ it('splits oversized passages without discarding any Unicode text', () => {
 it('honors backoff and bounds provider attempts to three', async () => {
   const attempts: number[] = [];
   let retries!: Promise<any>;
-  const model: MomRequester = async () => { attempts.push(Date.now()); throw new AssistantAPIError(503, 20); };
+  let firstAttempt!: () => void;
+  const started = new Promise<void>(resolve => { firstAttempt = resolve; });
+  const model: MomRequester = async () => { attempts.push(Date.now()); firstAttempt(); throw new AssistantAPIError(503, 20); };
   const cp = { segments: transcript().segments, settings, key: 'test', signal: new AbortController().signal, request: model, save: async () => {} };
   vi.useFakeTimers();
   retries = generateMinutes(cp).catch(e => e);
-  // Hashing is native asynchronous crypto, independent of fake timer advancement.
-  await new Promise<void>(resolve => { crypto.subtle.digest('SHA-256', new Uint8Array()).then(() => resolve()); });
+  // Wait for this request, not a different native-crypto job whose completion can
+  // race checkpoint persistence and fake-timer advancement.
+  await started;
   await vi.advanceTimersByTimeAsync(10_000);
   await retries;
   expect(attempts).toHaveLength(3);
@@ -359,18 +362,23 @@ it('honors backoff and bounds provider attempts to three', async () => {
   expect(attempts[2] - attempts[1]).toBeGreaterThanOrEqual(4000);
 });
 it('a manual retry preserves the final provider waiting period', async () => {
+  vi.useFakeTimers();
   await c.begin(meta());
   const job = storage.jobs.get('meeting-a');
   job.phase = 'failed'; job.transcript = transcript(); job.retryAt = Date.now() + 5000;
   const deadline = job.retryAt;
   const recovered = controller(); await recovered.restore();
-  vi.useFakeTimers();
+  let firstAttempt!: () => void;
+  const started = new Promise<void>(resolve => { firstAttempt = resolve; });
+  const respond = request.getMockImplementation()!;
+  request.mockImplementation(async (...args) => { firstAttempt(); return respond(...args); });
   await recovered.retry('meeting-a');
   await vi.advanceTimersByTimeAsync(4999); expect(request).not.toHaveBeenCalled();
   await vi.advanceTimersByTimeAsync(1);
-  await new Promise<void>(resolve => { crypto.subtle.digest('SHA-256', new Uint8Array()).then(() => resolve()); });
+  await started;
   await vi.advanceTimersByTimeAsync(0);
   expect(request).toHaveBeenCalled(); expect(Date.now()).toBeGreaterThanOrEqual(deadline);
+  await vi.waitFor(() => expect(recovered.busy).toBe(false));
 });
 it('concurrent stale transcript observations cannot move final coverage backwards', async () => {
   await c.begin(meta());

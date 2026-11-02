@@ -4,7 +4,7 @@ import { AssistantAPIError } from '../assistant/errors';
 import type { TranscriptSnapshot } from '../transcription/types';
 import type { EndMeetingJob, EndMeetingMeta, ExportFile } from './types';
 import { claimDestinationCleanup, deleteJob, getDestinationRecord, getJob, listJobs, putJob, releaseDestinationCleanup, setBundleDirectory } from './store';
-import { generateMinutes, minutesText, MomValidationError, transcriptHash, transcriptText } from './mom';
+import { generateMinutes, minutesText, MomValidationError, transcriptHash, transcriptText, validateRejection, type MomCheckpoint } from './mom';
 import { EndConnectionError, type MomRequester } from './provider';
 
 interface Hooks {
@@ -242,7 +242,10 @@ export class EndMeetingController {
         if (!this.current(job) || abort.signal.aborted) return;
         job.phase = 'failed'; job.error = safeFailure(error);
         await this.publish(job);
-        this.event(job, 'mom-failed', { status: error instanceof AssistantAPIError ? error.status : 0 });
+        this.event(job, 'mom-failed', {
+          status: error instanceof AssistantAPIError ? error.status : 0,
+          ...(error instanceof MomValidationError ? { code: error.code, stage: error.stage } : {}),
+        });
       }
     }).finally(async () => {
       if (this.generations.get(job.sessionId) === abort) this.generations.delete(job.sessionId);
@@ -256,8 +259,23 @@ export class EndMeetingController {
     this.serial = work;
     return work;
   }
-  async retry(id: string): Promise<void> {
+  async retry(id: string, priorRejection?: MomCheckpoint['lastRejection']): Promise<void> {
     const job = await this.ensure(id); if (!job) return;
+    // Older checkpoints discarded review feedback. An explicit Retry may recover
+    // it from that session's captured evidence, but never overwrite active work
+    // or attach a candidate to a different transcript revision.
+    if (priorRejection && job.phase === 'failed' && !job.minutes && !this.generationTasks.has(id) &&
+      job.checkpoint && !job.checkpoint.lastRejection && job.transcriptHash &&
+      job.checkpoint.sourceHash === job.transcriptHash && job.transcript?.phase === 'complete' && !job.transcript.incomplete) {
+      const hash = job.transcriptHash;
+      const sourceHash = await transcriptHash(job.transcript.segments.filter(s => s.text.trim()));
+      if (sourceHash === hash && this.current(job) && job.transcriptHash === hash && !this.generationTasks.has(id)) {
+        job.checkpoint.lastRejection = validateRejection(priorRejection, job.transcript.segments);
+        job.checkpoint.repairing = false;
+        await this.publish(job);
+        this.event(job, 'mom-feedback-restored', { stage: 'compose', code: 'review_feedback_restored' });
+      }
+    }
     if (job.transcript?.phase === 'complete' && !job.transcript.incomplete && ['failed', 'generating'].includes(job.phase)) {
       void this.startGeneration(job).catch(() => {});
     } else await this.save(id);
