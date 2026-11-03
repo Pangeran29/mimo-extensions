@@ -81,7 +81,7 @@ const checks = [],
   requests = [],
   states = [],
   captures = [];
-let context, page, profile, scenario, releaseAsr, releaseCompose, releaseRepair;
+let context, page, profile, scenario, releaseAsr, releaseCompose, releaseRepair, releaseValidation;
 const check = (name, value, detail) => {
   assert.ok(value, name + (detail === undefined ? '' : ': ' + JSON.stringify(detail)));
   checks.push(name);
@@ -177,6 +177,14 @@ const relay = createRelay({
         scenario.repairHeld = false;
       }
     }
+    if (stage === 'compose' && input.validation) {
+      scenario.validationFeedback = input;
+      if (scenario.holdValidationCompose) {
+        scenario.validationHeld = true;
+        await new Promise((r) => (releaseValidation = r));
+        scenario.validationHeld = false;
+      }
+    }
     if (stage === 'review')
       return sse(body, {
         protocol: 1,
@@ -186,8 +194,9 @@ const relay = createRelay({
             ? rejectionReason
             : 'Synthetic fixture checks exact source quotes and explicit agreements.',
       });
+    const originalInput = input.originalInput ?? input;
     const transcript =
-      input.transcript ?? input.chronologicalLedgers?.flatMap((x) => x.facts) ?? [];
+      originalInput.transcript ?? originalInput.chronologicalLedgers?.flatMap((x) => x.facts) ?? [];
     const segment = transcript[0];
     assert.ok(segment, 'MoM request must include full synthetic transcript');
     const source = segment.id ?? segment.sources?.[0] ?? 0;
@@ -208,6 +217,11 @@ const relay = createRelay({
         quotes: [{ source, text: 'Rani will confirm support capacity by 18 November.' }],
       },
     ];
+    if (stage === 'compose' && scenario.missingQuoteFirstCompose && !input.validation) {
+      const other = transcript.find((s) => s.id !== source);
+      assert.ok(other, 'Structural validation fixture needs two actual ASR source segments');
+      facts[0].sources.push(other.id);
+    }
     return sse(
       body,
       stage === 'extract'
@@ -771,7 +785,103 @@ try {
       'Replay final result includes the post-meeting result',
       replay.run?.endMeeting?.sessionId === manualId,
     );
+    await page.evaluate(() => (window.__cancelTestPicker = false));
+    await page.locator('#choose-output-folder').click();
+    const pairedAudio = Buffer.concat([audio, audio.subarray(44)]);
+    pairedAudio.writeUInt32LE(pairedAudio.length - 8, 4);
+    pairedAudio.writeUInt32LE(pairedAudio.length - 44, 40);
+    const structural = await begin('missing-source-quote-structured-correction', pairedAudio, {
+      missingQuoteFirstCompose: true,
+      holdValidationCompose: true,
+    });
+    const structuralId = structural.replay.run.sessionId;
+    const correcting = await until(
+      (s) => s.end?.sessionId === structuralId && scenario.validationHeld,
+      'invalid structured MoM starts targeted correction',
+    );
+    states.push({ ...correcting, label: 'missing-quote-correction-held' });
+    check(
+      'Missing-quote regression uses multiple source segments from actual replay ASR',
+      correcting.end.transcript.segments.length >= 2,
+    );
+    const validation = scenario.validationFeedback;
+    check(
+      'Structured correction receives the rejected response and precise validation path',
+      validation?.validation?.stage === 'compose' &&
+        validation.validation.code === 'missing_source_quote' &&
+        validation.validation.path === '$.bullets[0].sources[1]' &&
+        validation.rejectedResponse.bullets[0].sources.length === 2 &&
+        validation.rejectedResponse.bullets[0].quotes.length === 1 &&
+        validation.originalInput.transcript.length >= 2,
+      validation,
+    );
+    check(
+      'Invalid structured draft cannot reach reviewer or accepted sidebar state',
+      scenario.calls.mom_review === 0 && !correcting.end.minutes &&
+        !correcting.end.checkpoint.draft && correcting.end.files.mom.phase === 'pending',
+    );
+    const structuralFrame = page.frameLocator('#memo-frame');
+    await structuralFrame.getByRole('heading', { name: 'Meeting notes', exact: true }).waitFor();
+    await structuralFrame.locator('.end-status').filter({
+      hasText: 'Mimo is checking the transcript references and preparing the meeting notes again.',
+    }).waitFor();
+    check(
+      'Sidebar gives truthful structural-correction progress from its persisted checkpoint',
+      correcting.end.checkpoint.correcting?.stage === 'compose',
+    );
+    check(
+      'Invalid structural response leaves no visible MoM bullets',
+      (await structuralFrame.locator('.end-bullets > li').count()) === 0,
+    );
+    const correctionFiles = await until(
+      (s) => s.end?.sessionId === structuralId &&
+        s.end.files.audio.phase === 'saved' && s.end.files.transcript.phase === 'saved',
+      'non-MoM files save during structural correction',
+    );
+    const heldNames = await savedFileNames(correctionFiles.end);
+    check(
+      'Missing-quote correction retains audio and transcript without exporting invalid mom.txt',
+      JSON.stringify(heldNames) === JSON.stringify([correctionFiles.end.audioFilename, 'transcript.txt'].sort()),
+      heldNames,
+    );
+    await capture('missing-quote-correction-no-invalid-output.png');
+    releaseValidation();
+    scenario.holdValidationCompose = false;
+    const structurallyReady = await until(
+      (s) => s.end?.sessionId === structuralId && s.end.phase === 'ready' &&
+        Object.values(s.end.files).every((f) => f.phase === 'saved'),
+      'structurally corrected draft reviewed and exported',
+    );
+    const structuralFiles = await files(structurallyReady.end);
+    await writeFile(path.join(artifact, 'missing-quote-files.json'), JSON.stringify(structuralFiles, null, 2) + '\n');
+    check(
+      'One targeted structural correction is followed by a full review',
+      scenario.calls.mom_compose === 2 && scenario.calls.mom_review === 1,
+      scenario.calls,
+    );
+    await structuralFrame.locator('.end-bullets > li').nth(1).waitFor();
+    check(
+      'Reviewed structural correction appears in actual sidebar and matching mom.txt',
+      structuralFiles.mom === '- The team agreed to launch on 23 November.\n- Rani will confirm support capacity by 18 November.\n' &&
+        (await structuralFrame.locator('.end-bullets').innerText()).includes('23 November') &&
+        (await structuralFrame.locator('.end-bullets').innerText()).includes('18 November'),
+    );
+    const structuralEvents = await replayEvents(structural.replay.run.id);
+    await writeFile(path.join(artifact, 'missing-quote-events.json'), JSON.stringify(structuralEvents, null, 2) + '\n');
+    check(
+      'Replay timeline records structural diagnosis and accepted final review',
+      structuralEvents.some((e) => e.kind === 'end.mom-validation-failed' &&
+        e.data.code === 'missing_source_quote' && e.data.path === '$.bullets[0].sources[1]') &&
+        structuralEvents.some((e) => e.kind === 'end.mom-validation-correction-accepted') &&
+        structuralEvents.some((e) => e.kind === 'end.mom-verdict' && e.data.accept),
+    );
+    await capture('missing-quote-meeting-notes-ready.png');
   }
+  // A fresh page resets the Replay Lab's optional preselected output handle.
+  // The silent Stop scenario must exercise cancellation without inheriting the
+  // structural-correction scenario's successful folder choice.
+  await page.reload();
+  await instrument();
   const silent = await begin('sidebar-stop-focus-on-silent-prefix', audio, { probeStartup: true });
   const silentFrame = page.frameLocator('#memo-frame');
   await silentFrame.locator('body').evaluate(() => {
@@ -855,6 +965,7 @@ try {
   releaseAsr?.();
   releaseCompose?.();
   releaseRepair?.();
+  releaseValidation?.();
   await writeFile(
     path.join(artifact, 'result.json'),
     JSON.stringify(

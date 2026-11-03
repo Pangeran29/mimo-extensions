@@ -48,11 +48,6 @@ body[data-ended='true'] #session-controls .nav-button > span {
   line-height: 1.65;
   overflow-wrap: anywhere;
 }
-.end-meeting-panel .end-sources {
-  color: #e5e5ff;
-  min-height: 36px;
-  margin-top: 2px;
-}
 .end-export {
   margin-top: 28px;
   padding-top: 20px;
@@ -85,6 +80,50 @@ body[data-ended='true'] #session-controls .nav-button > span {
   align-items: center;
   gap: 2px 18px;
   margin-top: 12px;
+}
+.end-discard-confirmation {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #8583e5;
+  color: #fff;
+}
+.end-discard-confirmation h3 {
+  margin: 0 0 10px;
+  font-size: 16px;
+  font-weight: 650;
+  line-height: 1.4;
+}
+.end-discard-confirmation p,
+.end-other-description {
+  margin: 0 0 12px;
+  color: #e5e5ff;
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.end-discard-confirmation .end-discard-meeting {
+  font-weight: 600;
+}
+.end-discard-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  scroll-margin-block: 12px;
+}
+.end-meeting-panel .end-discard-actions .text-button {
+  color: #fff;
+  font-size: 13px;
+  min-height: 44px;
+}
+.end-meeting-panel .end-discard-actions .end-discard-confirm {
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: #ffd9e0;
+  color: #73263b;
+}
+.end-meeting-panel .end-discard-actions .end-discard-confirm:hover {
+  background: #ffe9ed;
 }
 .end-other {
   margin-top: 18px;
@@ -159,6 +198,12 @@ body:not(.settings-open)[data-detail='summary'] #mimo-reading-surface {
   --thought-muted: #e5e5ff;
   background: #4643ce;
   color: #fff;
+}
+#mimo-reading-surface #summary-empty h2 {
+  color: var(--thought-ink);
+}
+#mimo-reading-surface #summary-empty p {
+  color: var(--thought-muted);
 }
 #mimo-reading-surface:has(#memo-companion[hidden]) {
   margin-top: 16px;

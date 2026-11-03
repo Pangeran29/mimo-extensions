@@ -66,6 +66,8 @@ let preparedDestination = false;
 let destinationSession: string | undefined;
 let selectedEndSession: string | undefined;
 let pendingEndJobs: EndMeetingJob[] = [];
+// A successful discard must also fence responses already queued in this view.
+const discardedEndSessions = new Set<string>();
 let pendingJobsLoading = false;
 let pendingJobsRefreshedAt = 0;
 let renderedSession: string | undefined;
@@ -80,10 +82,6 @@ const replayView = REPLAY_LAB && new URLSearchParams(location.search).get('repla
 const presentationTracker = new V2PresentationTracker();
 const idleMascot = new MimoMascot($('idle-mimo-greeting'), { interactive: true, size: 180 });
 const endView = new EndMeetingView($('end-meeting-panel'), {
-  sources: (ids, trigger) => {
-    if (endJob?.transcript) renderTranscript(endJob.transcript);
-    showEvidence(ids, trigger);
-  },
   save: () => {
     if (!endJob || endActionBusy) return;
     // The picker starts in this click, before the busy/render cycle awaits anything.
@@ -99,24 +97,51 @@ const endView = new EndMeetingView($('end-meeting-panel'), {
     updatePresence();
     if (!replayView) $('start').focus({ preventScroll: true });
   },
-  discard: () => {
-    if (!endJob || !confirm('Discard the unsaved meeting files? This cannot be undone.')) return;
+  discard: (sessionId) => {
+    if (!endJob || endJob.sessionId !== sessionId || !ended() || endActionBusy ||
+      ['starting', 'recording', 'stopping'].includes(recording.phase)) return;
+    const ownedFocus = $('end-meeting-panel').contains(document.activeElement);
+    const previousPanel = panelView, previousDetail = detail;
+    let clearedReader = false;
     void endAction(async () => {
-      await endRequest({ type: 'END_DISCARD', sessionId: endJob!.sessionId });
-      endJob = undefined;
-      endHidden = false;
-      selectedEndSession = undefined;
+      await endRequest({ type: 'END_DISCARD', sessionId });
+      discardedEndSessions.add(sessionId);
+      pendingEndJobs = pendingEndJobs.filter(job => job.sessionId !== sessionId);
+      // A new capture or explicit selection may have arrived while deletion ran.
+      if (endJob?.sessionId === sessionId &&
+        canReadEndJob(sessionId, activeSession, recording.phase, selectedEndSession)) {
+        endJob = undefined;
+        endHidden = true;
+        selectedEndSession = undefined;
+        reviewingSaved = false;
+        endFocusRequested = false;
+        clearedReader = true;
+      }
+      pendingControls();
       void refreshPending(true);
       return undefined;
+    }).then(() => {
+      if (!clearedReader || !ownedFocus || panelView !== previousPanel || detail !== previousDetail ||
+        panelView !== 'assistant' || ended() || ['starting', 'recording', 'stopping'].includes(recording.phase)) return;
+      const focus = document.activeElement;
+      if (focus instanceof HTMLElement && focus !== document.body && focus.isConnected &&
+        focus.getClientRects().length && !$('end-meeting-panel').contains(focus)) return;
+      // Replay's Start control is disabled; prefer an available retained result or Settings.
+      const target = [...$('pending-meetings-list').querySelectorAll<HTMLButtonElement>('button'),
+        $('start') as HTMLButtonElement, $('idle-settings') as HTMLButtonElement]
+        .find(button => !button.disabled && !!button.getClientRects().length);
+      target?.focus({ preventScroll: true });
     });
   },
   select: (sessionId) => void selectEndSession(sessionId),
 });
 function ended(): boolean {
-  return !!endJob && !endHidden && canReadEndJob(endJob.sessionId, activeSession, recording.phase, selectedEndSession);
+  return !!endJob && !discardedEndSessions.has(endJob.sessionId) && !endHidden &&
+    canReadEndJob(endJob.sessionId, activeSession, recording.phase, selectedEndSession);
 }
 async function selectEndSession(sessionId: string): Promise<void> {
-  if (['starting', 'recording', 'stopping'].includes(recording.phase) || endActionBusy) return;
+  if (discardedEndSessions.has(sessionId) || ['starting', 'recording', 'stopping'].includes(recording.phase) || endActionBusy) return;
+  if (endJob?.sessionId !== sessionId) endView.cancelDiscard(false);
   selectedEndSession = sessionId;
   endHidden = false;
   if (panelView === 'settings') openSettings(false, false);
@@ -131,11 +156,13 @@ async function selectEndSession(sessionId: string): Promise<void> {
   if (ended()) selectDetail('summary');
 }
 function pendingControls(): void {
+  pendingEndJobs = pendingEndJobs.filter(job => !discardedEndSessions.has(job.sessionId));
   const busy = ['starting', 'recording', 'stopping'].includes(recording.phase);
   endView.setPending(pendingEndJobs, busy || endActionBusy);
   const ids = new Set(pendingEndJobs.map((job) => job.sessionId));
   const raw = [...(recording.session ? [recording.session] : []), ...recording.retained]
     .filter((session, index, all) => all.findIndex((row) => row.id === session.id) === index)
+    .filter(session => !discardedEndSessions.has(session.id))
     .filter((session) => isUnclaimedBundle(session, ids));
   const pending = unsavedEndJobs(pendingEndJobs);
   const details = $('pending-meetings') as HTMLDetailsElement;
@@ -177,7 +204,7 @@ async function refreshPending(force = false): Promise<void> {
   if (pendingJobsLoading || !force && Date.now() - pendingJobsRefreshedAt < 5000) return;
   pendingJobsLoading = true;
   try {
-    pendingEndJobs = await listJobs();
+    pendingEndJobs = (await listJobs()).filter(job => !discardedEndSessions.has(job.sessionId));
     pendingJobsRefreshedAt = Date.now();
     pendingControls();
   } catch { /* Keep current reader available if the auxiliary list cannot load. */ }
@@ -196,7 +223,7 @@ async function endAction(task: () => Promise<EndMeetingJob | undefined>): Promis
   }
 }
 function receiveEnd(job: EndMeetingJob | undefined): void {
-  if (!job) return;
+  if (!job || discardedEndSessions.has(job.sessionId)) return;
   const old = pendingEndJobs.findIndex((item) => item.sessionId === job.sessionId);
   if (old >= 0) pendingEndJobs[old] = job;
   else pendingEndJobs.push(job);
@@ -211,8 +238,27 @@ function receiveEnd(job: EndMeetingJob | undefined): void {
 async function refreshEnd(): Promise<void> {
   if (endPolling || document.hidden) return;
   endPolling = true;
+  const requestedSession = selectedEndSession ?? activeSession;
+  const previousSelection = selectedEndSession;
+  const previousReader = endJob?.sessionId;
   try {
-    receiveEnd(await endRequest({ type: 'END_STATUS', sessionId: selectedEndSession ?? activeSession }));
+    const job = await endRequest({ type: 'END_STATUS', sessionId: requestedSession });
+    if (job) receiveEnd(job);
+    else if (requestedSession && requestedSession === previousReader && endJob?.sessionId === requestedSession &&
+      selectedEndSession === previousSelection && !endActionBusy &&
+      !['starting', 'recording', 'stopping'].includes(recording.phase) &&
+      canReadEndJob(requestedSession, activeSession, recording.phase, selectedEndSession)) {
+      // Another open reader may have discarded this explicitly requested job.
+      // An empty generic "latest" query cannot establish which session was removed.
+      discardedEndSessions.add(requestedSession);
+      pendingEndJobs = pendingEndJobs.filter(item => item.sessionId !== requestedSession);
+      endJob = undefined;
+      endHidden = true;
+      selectedEndSession = undefined;
+      reviewingSaved = false;
+      endFocusRequested = false;
+      updatePresence();
+    }
     void refreshPending();
   } catch { /* Existing builds may not expose end-session status until reloaded. */ }
   finally { endPolling = false; }
@@ -276,6 +322,7 @@ function selectDetail(
   focus = true,
   options: MimoNavigationOptions = {},
 ): void {
+  if (next !== 'summary') endView.cancelDiscard(false);
   const previousDetail = detail;
   if (!options.source && !options.backFromSource) sourceNavigation = false;
   memoCharacter.navigation(next, options);
@@ -735,6 +782,7 @@ function renderTranscript(s: TranscriptSnapshot, notify = false): void {
   updatePresence();
 }
 function updatePresence(): void {
+  if (!ended() || panelView !== 'assistant' || detail !== 'summary') endView.cancelDiscard(false);
   if (ended()) {
     $('memo-recovery').hidden = true;
     memoCharacter.endMeeting(true, endJob!.phase === 'generating' || endJob!.phase === 'waiting_transcript', endJob!.phase === 'failed', endJob!.phase === 'empty');
@@ -828,7 +876,7 @@ function updateSessionView(): void {
   document.body.dataset.recording = recording.phase;
   document.body.dataset.ended = String(end);
   $('end-meeting-panel').hidden = !end;
-  $('last-meeting').hidden = !endJob || !endHidden || !!activeSession && endJob.sessionId !== activeSession;
+  $('last-meeting').hidden = !endJob || discardedEndSessions.has(endJob.sessionId) || !endHidden || !!activeSession && endJob.sessionId !== activeSession;
   if (end && endJob) endView.render(endJob);
   if (end && endFocusRequested && panelView === 'assistant' && detail === 'summary') {
     const heading = $('end-meeting-panel').querySelector<HTMLElement>('h2');
@@ -972,6 +1020,7 @@ function recorder(s: Status): void {
   if (s.error) error(new Error(s.error));
 }
 function showView(view: PanelView, moveFocus = true): void {
+  if (view === 'settings') endView.cancelDiscard(false);
   const changed = panelView !== view;
   if (changed) settingsFocusEpoch++;
   const focusEpoch = settingsFocusEpoch;

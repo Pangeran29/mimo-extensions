@@ -2,12 +2,11 @@ import type { EndMeetingJob, ExportFile } from './types';
 import { unsavedEndJobs } from './presentation';
 
 export interface EndViewActions {
-  sources(ids: number[], trigger: HTMLElement): void;
   save(): void;
   retryMom(): void;
   retrySave(): void;
   start(): void;
-  discard(): void;
+  discard(sessionId: string): void;
   select(sessionId: string): void;
 }
 
@@ -19,6 +18,8 @@ function phaseText(job: EndMeetingJob): string {
   if (job.phase === 'generating')
     return job.retryAt && job.retryAt > Date.now()
       ? 'The AI service needs a moment. Your meeting notes will retry automatically.'
+      : job.checkpoint?.correcting
+        ? 'Mimo is checking the transcript references and preparing the meeting notes again.'
       : job.checkpoint?.repairing
         ? 'Mimo is correcting the meeting notes against the transcript, then checking them again.'
       : 'Mimo is finding the important points from the whole conversation.';
@@ -45,6 +46,10 @@ export class EndMeetingView {
   private pendingDisabled = false;
   private others: HTMLDetailsElement;
   private othersList: HTMLUListElement;
+  private discardConfirmation: HTMLElement;
+  private discardMeeting: HTMLElement;
+  private keepMeeting: HTMLButtonElement;
+  private discardSession?: string;
 
   constructor(private root: HTMLElement, private actions: EndViewActions) {
     const heading = document.createElement('h2');
@@ -78,12 +83,56 @@ export class EndMeetingView {
     this.retry = button('Retry meeting notes', () => actions.retryMom());
     this.retrySave = button('Retry saving', () => actions.retrySave());
     this.start = button('New meeting', () => actions.start());
-    this.discard = button('Discard unsaved files', () => actions.discard());
-    exportSection.append(this.exportStatus, this.fileList, buttons);
+    this.discard = button('Discard unsaved files', () => this.askDiscard());
+    this.discard.setAttribute('aria-expanded', 'false');
+    this.discardConfirmation = document.createElement('section');
+    this.discardConfirmation.className = 'end-discard-confirmation';
+    this.discardConfirmation.id = `${root.id}-discard-confirmation`;
+    this.discardConfirmation.hidden = true;
+    this.discardConfirmation.setAttribute('role', 'group');
+    this.discardConfirmation.setAttribute('aria-label', 'Discard meeting confirmation');
+    this.discard.setAttribute('aria-controls', this.discardConfirmation.id);
+    const discardHeading = document.createElement('h3');
+    discardHeading.textContent = 'Discard this meeting?';
+    this.discardMeeting = document.createElement('p');
+    this.discardMeeting.className = 'end-discard-meeting';
+    const consequence = document.createElement('p');
+    consequence.textContent = 'Unsaved results and the retained recording will be removed from Mimo. Files already saved to your folder stay there. This cannot be undone.';
+    const discardActions = document.createElement('div');
+    discardActions.className = 'end-discard-actions';
+    this.keepMeeting = document.createElement('button');
+    this.keepMeeting.type = 'button';
+    this.keepMeeting.className = 'text-button';
+    this.keepMeeting.textContent = 'Keep meeting';
+    this.keepMeeting.onclick = () => this.cancelDiscard();
+    const confirmDiscard = document.createElement('button');
+    confirmDiscard.type = 'button';
+    confirmDiscard.className = 'text-button end-discard-confirm';
+    confirmDiscard.textContent = 'Discard meeting';
+    confirmDiscard.onclick = () => {
+      const id = this.discardSession;
+      if (!id || id !== this.sessionId || this.busy || this.discard.hidden) return;
+      this.cancelDiscard();
+      actions.discard(id);
+    };
+    this.discardConfirmation.onkeydown = (event) => {
+      if (event.key === 'Escape' && !this.busy) {
+        event.preventDefault();
+        event.stopPropagation();
+        this.cancelDiscard();
+      }
+    };
+    discardActions.append(this.keepMeeting, confirmDiscard);
+    this.discardConfirmation.append(discardHeading, this.discardMeeting, consequence, discardActions);
+    exportSection.append(this.exportStatus, this.fileList, buttons, this.discardConfirmation);
     this.others = document.createElement('details');
     this.others.className = 'end-other';
     this.others.hidden = true;
     this.others.append(document.createElement('summary'));
+    const otherDescription = document.createElement('p');
+    otherDescription.className = 'end-other-description';
+    otherDescription.textContent = 'Previous sessions still kept on this device. Open one to view its notes and save status.';
+    this.others.append(otherDescription);
     this.othersList = document.createElement('ul');
     this.others.append(this.othersList);
     root.append(heading, this.status, this.list, exportSection, this.others);
@@ -114,12 +163,36 @@ export class EndMeetingView {
 
   setBusy(value: boolean): void {
     this.busy = value;
-    for (const button of this.root.querySelectorAll<HTMLButtonElement>('.end-actions button'))
+    for (const button of this.root.querySelectorAll<HTMLButtonElement>('.end-actions button, .end-discard-confirmation button'))
       button.disabled = value;
+  }
+
+  private askDiscard(): void {
+    if (this.busy || !this.sessionId || this.discard.hidden) return;
+    this.discardSession = this.sessionId;
+    this.discardConfirmation.hidden = false;
+    this.discard.setAttribute('aria-expanded', 'true');
+    this.keepMeeting.parentElement!.scrollIntoView({ block: 'nearest' });
+    this.keepMeeting.focus({ preventScroll: true });
+  }
+
+  cancelDiscard(restoreFocus = true): void {
+    const wasOpen = !this.discardConfirmation.hidden;
+    const ownedFocus = this.discardConfirmation.contains(document.activeElement);
+    this.discardSession = undefined;
+    this.discardConfirmation.hidden = true;
+    this.discard.setAttribute('aria-expanded', 'false');
+    if (wasOpen && restoreFocus && ownedFocus && !this.busy) {
+      if (!this.discard.hidden && this.discard.getClientRects().length)
+        this.discard.focus({ preventScroll: true });
+      else if (this.root.getClientRects().length)
+        this.root.focus({ preventScroll: true });
+    }
   }
 
   render(job: EndMeetingJob): void {
     if (this.sessionId !== job.sessionId) {
+      this.cancelDiscard(false);
       this.sessionId = job.sessionId;
       this.renderedMinutes = '';
       this.root.scrollTop = 0;
@@ -136,15 +209,6 @@ export class EndMeetingView {
         const text = document.createElement('p');
         text.textContent = bullet.text;
         li.append(text);
-        if (bullet.sources.length && job.transcript) {
-          const sources = document.createElement('button');
-          sources.type = 'button';
-          sources.className = 'text-button end-sources';
-          sources.textContent = 'Sources';
-          sources.setAttribute('aria-label', `Sources for ${bullet.text}`);
-          sources.onclick = () => this.actions.sources(bullet.sources, sources);
-          li.append(sources);
-        }
         this.list.append(li);
       }
     }
@@ -179,6 +243,9 @@ export class EndMeetingView {
     this.retry.hidden = job.phase !== 'failed' || !!job.retryAt && job.retryAt > Date.now();
     this.retrySave.hidden = !job.cleanupError && (job.destination !== 'selected' || !Object.values(job.files).some((f) => f.phase === 'failed'));
     this.discard.hidden = saved === 3;
+    if (saved === 3) this.cancelDiscard();
+    const meetingLabel = `${job.sourceTitle} — ${new Date(job.createdAt).toLocaleString()}`;
+    if (this.discardMeeting.textContent !== meetingLabel) this.discardMeeting.textContent = meetingLabel;
     this.start.hidden = job.phase === 'waiting_transcript' && !job.transcript?.incomplete && job.transcript?.phase !== 'failed';
     this.setBusy(this.busy);
     this.setPending(this.pendingJobs, this.pendingDisabled);

@@ -122,7 +122,9 @@ it('does not weaken exact-quote validation for a revised candidate', async () =>
     return response(value);
   };
   await expect(generateMinutes(input(request))).rejects.toBeInstanceOf(MomValidationError);
-  expect(count).toBe(2);
+  // The invalid semantic repair earns one bounded structural correction;
+  // neither invalid response is allowed through the evidence gate.
+  expect(count).toBe(3);
 });
 
 it('reuses long-transcript extraction coverage and restarts every review batch after a later batch rejects', async () => {

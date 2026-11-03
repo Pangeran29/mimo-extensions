@@ -244,7 +244,7 @@ export class EndMeetingController {
         await this.publish(job);
         this.event(job, 'mom-failed', {
           status: error instanceof AssistantAPIError ? error.status : 0,
-          ...(error instanceof MomValidationError ? { code: error.code, stage: error.stage } : {}),
+          ...(error instanceof MomValidationError ? { code: error.code, stage: error.stage, path: error.path } : {}),
         });
       }
     }).finally(async () => {
